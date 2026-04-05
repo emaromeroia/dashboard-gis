@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GIS · MULTICUENTAS</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -14,37 +14,46 @@
   --tiktok: #3cf0ff; --ig: #ff60c0; --fb: #1877F2; --yt: #FF0000;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; overflow-x: hidden; }
+body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; overflow-x: hidden; }
 
-@keyframes reveal { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-.animate-reveal { animation: reveal 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes reveal { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+.animate-reveal { animation: reveal 0.5s ease-out both; }
 
 #loading-screen { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; position: fixed; width: 100%; top: 0; left: 0; background: var(--bg); z-index: 1000; }
-.topbar { padding: 1.2rem 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: rgba(5,5,8,0.95); backdrop-filter: blur(20px); z-index: 100; }
+.topbar { padding: 1rem 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: rgba(5,5,8,0.95); backdrop-filter: blur(20px); z-index: 100; }
 .tab-bar { display: flex; gap: 5px; padding: 0.5rem 2rem; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; }
-.tab { padding: 12px 20px; color: var(--muted); border: none; background: none; cursor: pointer; font-family: inherit; font-size: 11px; text-transform: uppercase; transition: 0.3s; white-space: nowrap; }
+.tab { padding: 12px 20px; color: var(--muted); border: none; background: none; cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; transition: 0.3s; white-space: nowrap; }
 .tab.active { color: var(--lime); font-weight: 700; border-bottom: 2px solid var(--lime); }
 
 .content { padding: 2rem; max-width: 1400px; margin: 0 auto; }
 .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 2rem; }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.8rem; transition: transform 0.3s; position: relative; overflow: hidden; }
-.card:hover { transform: scale(1.03); border-color: rgba(184,255,60,0.3); }
-.hero { border-left: 5px solid var(--lime); background: linear-gradient(135deg, rgba(184,255,60,0.05), transparent); }
-.val { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; color: var(--text); }
-.hero .val { color: var(--lime); text-shadow: 0 0 15px rgba(184,255,60,0.3); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; transition: transform 0.3s; }
+.card:hover { transform: scale(1.02); border-color: rgba(184,255,60,0.3); }
+.hero { border-left: 5px solid var(--lime); }
+.val { font-size: 32px; font-weight: 800; color: var(--text); letter-spacing: -1px; }
+.hero .val { color: var(--lime); text-shadow: 0 0 15px rgba(184,255,60,0.2); }
 
-.panel { background: rgba(18,18,26,0.5); border: 1px solid var(--border); border-radius: var(--radius); padding: 25px; margin-bottom: 1.5rem; backdrop-filter: blur(10px); }
+.panel { background: rgba(18,18,26,0.5); border: 1px solid var(--border); border-radius: var(--radius); padding: 25px; margin-bottom: 1.5rem; }
 .chart-container { position: relative; height: 300px; width: 100%; }
-.acc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
 
-@media (max-width: 768px) { .metrics-grid { grid-template-columns: 1fr; } .content { padding: 1rem; } }
+.bono-card { 
+  background: linear-gradient(90deg, rgba(184,255,60,0.1), transparent);
+  border: 1px solid rgba(184,255,60,0.2); border-radius: var(--radius);
+  padding: 1.5rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 20px;
+}
+.bono-icon { font-size: 30px; filter: drop-shadow(0 0 10px var(--lime)); }
+
+.acc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
+.acc-mini-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+@media (max-width: 768px) { .metrics-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
 
 <div id="loading-screen">
-    <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
-    <h2 style="font-family:'Syne'; font-weight:800; letter-spacing: 2px;">MULTICUENTAS</h2>
+    <div style="font-size: 3rem; margin-bottom: 1rem;">📈</div>
+    <h2 style="font-weight:800; letter-spacing: 1px;">MULTICUENTAS</h2>
     <p id="status" style="color:var(--muted); font-size:11px; margin-top:10px;">Sincronizando datos...</p>
 </div>
 
@@ -52,9 +61,9 @@ body { background: var(--bg); color: var(--text); font-family: 'Space Mono', mon
     <div class="topbar">
         <div style="display:flex; align-items:center; gap:12px;">
             <div style="width:10px; height:10px; border-radius:50%; background:var(--lime); box-shadow:0 0 10px var(--lime);"></div>
-            <div style="font-family:'Syne'; font-weight:800; font-size:1.1rem; letter-spacing:1px;">GIS · MULTICUENTAS</div>
+            <div style="font-weight:800; font-size:1.1rem;">GIS · MULTICUENTAS</div>
         </div>
-        <button onclick="location.reload()" style="background:none; border:1px solid var(--border); color:var(--muted); padding:8px 16px; border-radius:8px; cursor:pointer; font-size:10px; font-weight:700;">RECARGAR</button>
+        <button onclick="location.reload()" style="background:none; border:1px solid var(--border); color:var(--muted); padding:8px 16px; border-radius:8px; cursor:pointer; font-family:'JetBrains Mono'; font-size:10px;">RECARGAR</button>
     </div>
     <div class="tab-bar" id="tabs"></div>
     <div class="content" id="main"></div>
@@ -66,34 +75,19 @@ const COLORS = ['#b8ff3c','#3cf0ff','#ff60c0','#1877F2','#FF0000'];
 let charts = [];
 
 window.onload = async () => {
-    const status = document.getElementById('status');
     try {
-        // El truco es agregar un número aleatorio al final (?v=...) para que GitHub no use una versión vieja del Excel
-        const r = await fetch('datos.xlsx?v=' + Date.now()); 
-        if(!r.ok) throw new Error("Archivo no hallado");
-        
+        const r = await fetch('datos.xlsx?v=' + Date.now());
+        if(!r.ok) throw new Error();
         const ab = await r.arrayBuffer();
-        status.innerHTML = "Generando gráficos...";
-        start(ab);
+        const wb = XLSX.read(ab, {type:'array', cellDates:true});
+        const data = parse(wb);
+        document.getElementById('loading-screen').style.display = 'none';
+        document.getElementById('dash').style.display = 'block';
+        render(data);
     } catch(e) {
-        status.innerHTML = "Error: No se encontró 'datos.xlsx'. Revisa el nombre en GitHub.";
-        status.style.color = "#ff4b4b";
+        document.getElementById('status').innerHTML = "Error: Sube el archivo 'datos.xlsx' a GitHub.";
     }
 };
-
-function start(buffer) {
-    const wb = XLSX.read(buffer, {type:'array', cellDates:true});
-    const data = parse(wb);
-    
-    if(data.weeks.length === 0) {
-        document.getElementById('status').innerHTML = "Error: El Excel no tiene pestañas llamadas 'Semana 1', 'Semana 2'...";
-        return;
-    }
-
-    document.getElementById('loading-screen').style.display = 'none';
-    document.getElementById('dash').style.display = 'block';
-    render(data);
-}
 
 function parse(wb) {
     const weeks = [];
@@ -105,16 +99,30 @@ function parse(wb) {
         if(hRow < 0) return;
         
         const h = rows[hRow].map(c => String(c).toLowerCase());
-        const ci = { tik: h.indexOf('tiktok'), ig: h.indexOf('instagram'), fb: h.indexOf('facebook'), yt: h.indexOf('youtube') };
-        const accs = [];
+        const ci = { tik: h.indexOf('tiktok'), ig: h.indexOf('instagram'), fb: h.indexOf('facebook'), yt: h.indexOf('youtube'), tot: h.indexOf('total views') };
         
+        const accs = [];
+        let bono = null;
+
         for(let i = hRow + 2; i < rows.length; i++) {
-            const name = String(rows[i][0] || '').trim();
-            if(!name || /total|bono/i.test(name)) continue;
+            const firstCol = String(rows[i][0] || '').trim();
+            if(!firstCol) continue;
+            
+            // Detectar Bono (Trofeo)
+            if(/bono/i.test(firstCol) || (rows[i-1] && /bono/i.test(String(rows[i-1][0])))) {
+               const bCuenta = String(rows[i][1] || '');
+               const bMonto = String(rows[i][2] || '');
+               if(bCuenta && bCuenta !== 'CUENTA GANADORA') bono = { cuenta: bCuenta, monto: bMonto };
+               continue;
+            }
+
+            if(/total|fecha|link/i.test(firstCol)) continue;
+
             const v = { TikTok:pn(rows[i][ci.tik]), Instagram:pn(rows[i][ci.ig]), Facebook:pn(rows[i][ci.fb]), YouTube:pn(rows[i][ci.yt]) };
-            accs.push({ name, ...v, total: Object.values(v).reduce((a,b)=>a+b,0) });
+            const total = pn(rows[i][ci.tot]) || Object.values(v).reduce((a,b)=>a+b,0);
+            if(total > 0) accs.push({ name: firstCol, ...v, total });
         }
-        weeks.push({ num: parseInt(m[1]), accounts: accs });
+        weeks.push({ num: parseInt(m[1]), accounts: accs, bono });
     });
     return { weeks: weeks.sort((a,b) => a.num - b.num) };
 }
@@ -122,8 +130,8 @@ function parse(wb) {
 function pn(v) { const n = parseFloat(String(v).replace(/[^0-9.-]/g, '')); return isNaN(n)?0:n; }
 
 function render(data) {
-    const container = document.getElementById('tabs');
-    container.innerHTML = '';
+    const tabs = document.getElementById('tabs');
+    tabs.innerHTML = '';
     const res = buildRes(data.weeks);
     
     const addTab = (lbl, fn, active=false) => {
@@ -131,10 +139,10 @@ function render(data) {
         b.className = 'tab' + (active?' active':'');
         b.textContent = lbl;
         b.onclick = () => { document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); b.classList.add('active'); fn(); };
-        container.appendChild(b);
+        tabs.appendChild(b);
     };
 
-    addTab('Resumen Mensual', () => showRes(res, data.weeks), true);
+    addTab('Resumen', () => showRes(res, data.weeks), true);
     data.weeks.forEach(w => addTab('Semana '+w.num, () => showWeek(w)));
     showRes(res, data.weeks);
 }
@@ -152,25 +160,42 @@ function showRes(res, weeks) {
     clear();
     const names = Object.keys(res);
     const grand = names.reduce((s,n)=>s+res[n].total,0);
-    let h = `<div class="metrics-grid animate-reveal"><div class="card hero"><div style="font-size:10px;color:var(--muted);margin-bottom:8px">TOTAL ALCANCE MES</div><div class="val">${fmt(grand)}</div></div>`;
-    names.slice(0,3).forEach((n,i) => h += `<div class="card"><div style="font-size:10px;color:var(--muted);margin-bottom:8px">${n}</div><div class="val" style="font-size:22px">${fmt(res[n].total)}</div></div>`);
-    h += `</div><div class="panel animate-reveal"><div style="font-size:11px;margin-bottom:20px;color:var(--muted)">EVOLUCIÓN SEMANAL</div><div class="chart-container"><canvas id="c1"></canvas></div></div>`;
+    let h = `<div class="metrics-grid animate-reveal"><div class="card hero"><div style="font-size:10px;color:var(--muted);margin-bottom:8px">TOTAL MES</div><div class="val">${fmt(grand)}</div></div>`;
+    names.forEach((n,i) => h += `<div class="card"><div style="font-size:10px;color:var(--muted);margin-bottom:8px">${n}</div><div class="val" style="font-size:22px">${fmt(res[n].total)}</div></div>`);
+    h += `</div><div class="panel animate-reveal"><div style="font-size:11px;margin-bottom:20px;color:var(--muted)">EVOLUCIÓN MENSUAL</div><div class="chart-container"><canvas id="c1"></canvas></div></div>`;
     document.getElementById('main').innerHTML = h;
     
-    new Chart(document.getElementById('c1'), { type:'line', data:{ labels:weeks.map(w=>'Sem '+w.num), datasets: names.map((n,i)=>({label:n, data:res[n].history, borderColor:COLORS[i%5], tension:0.4})) }, options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#8a87a0', font:{family:'Space Mono', size:10}}}} }});
+    new Chart(document.getElementById('c1'), { type:'line', data:{ labels:weeks.map(w=>'Sem '+w.num), datasets: names.map((n,i)=>({label:n, data:res[n].history, borderColor:COLORS[i%5], tension:0.4})) }, options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#8a87a0', font:{size:10}}}} }});
 }
 
 function showWeek(w) {
     clear();
     const totals = {TikTok:0, Instagram:0, Facebook:0, YouTube:0};
     w.accounts.forEach(a => PLATS.forEach(p => totals[p] += a[p]));
-    const total = Object.values(totals).reduce((a,b) => a+b, 0);
-    let h = `<div class="metrics-grid animate-reveal"><div class="card hero"><div style="font-size:10px;color:var(--muted);margin-bottom:8px">ALCANCE SEMANA ${w.num}</div><div class="val">${fmt(total)}</div></div>`;
-    PLATS.forEach(p => h += `<div class="card"><div style="font-size:10px;color:var(--muted);margin-bottom:8px">${p}</div><div class="val" style="font-size:20px">${fmt(totals[p])}</div></div>`);
-    h += `</div><div class="acc-grid animate-reveal">`;
-    w.accounts.forEach(a => h += `<div class="card"><div style="font-weight:700;margin-bottom:10px;font-size:11px;border-bottom:1px solid var(--border);padding-bottom:5px">${a.name}</div><div class="val" style="color:var(--lime);font-size:22px">${fmt(a.total)}</div></div>`);
+    const total = Object.values(totals).reduce((a,b)=>a+b,0);
+    
+    let h = '';
+    if(w.bono) {
+        h += `<div class="bono-card animate-reveal"><div class="bono-icon">🏆</div><div><div style="font-size:10px;color:var(--lime);font-weight:bold">BONO SEMANAL</div><div style="font-size:18px;font-weight:800">${w.bono.cuenta} <span style="color:var(--lime)">(${w.bono.monto})</span></div></div></div>`;
+    }
+
+    h += `<div class="metrics-grid animate-reveal"><div class="card hero"><div style="font-size:10px;color:var(--muted);margin-bottom:8px">TOTAL SEMANA</div><div class="val">${fmt(total)}</div></div>`;
+    PLATS.forEach(p => h += `<div class="card"><div style="font-size:10px;color:var(--muted);margin-bottom:8px">${p}</div><div class="val" style="font-size:22px">${fmt(totals[p])}</div></div>`);
+    
+    h += `</div><div class="grid-2 animate-reveal"><div class="panel"><div style="font-size:10px;color:var(--muted);margin-bottom:15px">APORTE POR PLATAFORMA</div><div class="chart-container"><canvas id="p1"></canvas></div></div><div class="panel"><div style="font-size:10px;color:var(--muted);margin-bottom:15px">RENDIMIENTO POR CUENTA</div><div class="chart-container"><canvas id="p2"></canvas></div></div></div>`;
+    
+    h += `<div class="acc-grid">`;
+    w.accounts.forEach(a => {
+        h += `<div class="card animate-reveal"><div style="font-weight:bold;margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:5px">${a.name}</div><div class="val" style="color:var(--lime);font-size:20px">${fmt(a.total)}</div>`;
+        PLATS.forEach(p => h += `<div class="acc-mini-row"><span>${p}</span><span>${fmt(a[p])}</span></div>`);
+        h += `</div>`;
+    });
     h += `</div>`;
+    
     document.getElementById('main').innerHTML = h;
+
+    new Chart(document.getElementById('p1'), { type:'doughnut', data:{ labels:PLATS, datasets:[{data:PLATS.map(p=>totals[p]), backgroundColor:COLORS.slice(1)}] }, options:{ responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{legend:{position:'bottom', labels:{color:'#8a87a0', font:{size:10}}}} }});
+    new Chart(document.getElementById('p2'), { type:'bar', data:{ labels:w.accounts.map(a=>a.name), datasets:[{label:'Views', data:w.accounts.map(a=>a.total), backgroundColor:COLORS[0]}] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{grid:{color:'rgba(255,255,255,0.05)'}}} }});
 }
 
 function fmt(n) { return Math.round(n).toLocaleString('es-AR'); }
