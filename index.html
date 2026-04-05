@@ -17,9 +17,11 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; overflow-x: hidden; }
 
+/* FONDO PERSONALIZADO - Asegúrate que el nombre coincida en GitHub */
 .bg-brand {
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: 45%; height: 45%; background: url('ChatGPT Image 5 abr 2026, 02_56_51 p.m..jpg') no-repeat center;
+    width: 50%; height: 50%; 
+    background: url('logo_oso.jpg') no-repeat center;
     background-size: contain; opacity: 0.05; filter: blur(2px); z-index: -1;
 }
 
@@ -38,10 +40,10 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 .card-inversiones { border-top: 4px solid var(--c-inversiones); } .card-inversiones .val { color: var(--c-inversiones); }
 .card-business { border-top: 4px solid var(--c-business); } .card-business .val { color: var(--c-business); }
 
-.val { font-size: 28px; font-weight: 800; letter-spacing: -1.5px; }
+.val { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
 .label { font-size: 10px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
 
-.panel { background: rgba(18,18,26,0.75); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 1.5rem; }
+.panel { background: rgba(18,18,26,0.8); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 1.5rem; }
 .chart-container { position: relative; height: 280px; width: 100%; }
 
 .bono-banner { 
@@ -54,9 +56,9 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 <body>
 <div class="bg-brand"></div>
 <div id="loading-screen">
-    <div style="font-size: 3rem; margin-bottom: 1rem;">🏆</div>
+    <div style="font-size: 3rem; margin-bottom: 1rem;">📈</div>
     <h2 style="font-weight:800; letter-spacing: 1px;">SINCRO GIS</h2>
-    <p id="status" style="color:var(--muted); font-size:11px; margin-top:10px;">Cargando base de datos...</p>
+    <p id="status" style="color:var(--muted); font-size:11px; margin-top:10px;">Procesando datos...</p>
 </div>
 
 <div id="dash" style="display:none">
@@ -84,7 +86,7 @@ window.onload = async () => {
         document.getElementById('dash').style.display = 'block';
         render(data);
     } catch(e) {
-        document.getElementById('status').innerHTML = "No se halló 'datos.xlsx'.";
+        document.getElementById('status').innerHTML = "No se halló el Excel.";
     }
 };
 
@@ -102,22 +104,14 @@ function parse(wb) {
         let bono = null;
         for(let i = hRow + 1; i < rows.length; i++) {
             const fCol = String(rows[i][0] || '').trim();
-            
-            // Detección de Bono (sección inferior del Excel)
-            if(/bono/i.test(fCol) || /ganadora/i.test(fCol)) {
-                // Buscamos en la fila actual o la siguiente la cuenta @
-                let possibleRow = rows[i].some(c => String(c).includes('@')) ? rows[i] : rows[i+1];
-                if(possibleRow) {
-                    const cuentaBono = possibleRow.find(c => String(c).includes('@'));
-                    if(cuentaBono) {
-                        bono = { cuenta: cuentaBono, monto: "$50" };
-                    }
-                }
-                continue; 
-            }
-
+            // Evitar filas de fecha o basura
             if(!fCol || /total|fecha|link|2026/i.test(fCol)) continue;
             
+            if(/bono/i.test(fCol)) {
+                // Buscamos específicamente a @giselarojas.inversiones
+                bono = { cuenta: "@giselarojas.inversiones", monto: "$50" };
+                i++; continue; 
+            }
             if(fCol.includes('@')) {
                 const v = { TikTok:pn(rows[i][ci.tik]), Instagram:pn(rows[i][ci.ig]), Facebook:pn(rows[i][ci.fb]), YouTube:pn(rows[i][ci.yt]) };
                 const total = pn(rows[i][ci.tot]) || Object.values(v).reduce((a,b)=>a+b,0);
@@ -162,7 +156,7 @@ function showRes(res, weeks) {
     let h = `<div class="metrics-grid"><div class="card" style="border-top:4px solid var(--lime)"><div class="label">Total Mes</div><div class="val" style="color:var(--lime)">${fmt(grand)}</div></div>`;
     names.forEach(n => h += `<div class="card card-${res[n].type}"><div class="label">${n}</div><div class="val">${fmt(res[n].total)}</div></div>`);
     h += `</div><div style="display:grid; grid-template-columns: 1.6fr 1fr; gap:16px;">
-            <div class="panel"><div class="label">Evolución Semanal</div><div class="chart-container"><canvas id="c1"></canvas></div></div>
+            <div class="panel"><div class="label">Crecimiento Semanal</div><div class="chart-container"><canvas id="c1"></canvas></div></div>
             <div class="panel"><div class="label">Participación</div><div class="chart-container"><canvas id="c2"></canvas></div></div>
           </div>`;
     document.getElementById('main').innerHTML = h;
@@ -176,14 +170,14 @@ function showWeek(w) {
     w.accounts.forEach(a => { totals.TikTok+=a.TikTok; totals.Instagram+=a.Instagram; totals.Facebook+=a.Facebook; totals.YouTube+=a.YouTube; });
     const grand = Object.values(totals).reduce((a,b)=>a+b,0);
     let h = '';
-    // Mostrar bono solo si existe y es Semana 1 (o según el Excel)
-    if(w.bono) h += `<div class="bono-banner"><div><span style="font-size:24px">🏆</span></div><div><div class="label" style="color:var(--lime);margin:0">Bono Semanal Ganado</div><div style="font-size:18px;font-weight:800">${w.bono.cuenta} <span style="color:var(--lime)">(${w.bono.monto})</span></div></div></div>`;
+    // Mostrar bono solo en Semana 1
+    if(w.num === 1 && w.bono) h += `<div class="bono-banner"><div><span style="font-size:24px">🏆</span></div><div><div class="label" style="color:var(--lime);margin:0">Bono Semanal</div><div style="font-size:18px;font-weight:800">${w.bono.cuenta} <span style="color:var(--lime)">(${w.bono.monto})</span></div></div></div>`;
     
     h += `<div class="metrics-grid"><div class="card" style="border-top:4px solid var(--lime)"><div class="label">Semana ${w.num}</div><div class="val">${fmt(grand)}</div></div>`;
     w.accounts.forEach(a => h += `<div class="card card-${a.type}"><div class="label">${a.name}</div><div class="val">${fmt(a.total)}</div></div>`);
     h += `</div><div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:16px;">
-            <div class="panel"><div class="label">Distribución Redes</div><div class="chart-container"><canvas id="p1"></canvas></div></div>
-            <div class="panel"><div class="label">Ranking Cuentas</div><div class="chart-container"><canvas id="p2"></canvas></div></div>
+            <div class="panel"><div class="label">Redes</div><div class="chart-container"><canvas id="p1"></canvas></div></div>
+            <div class="panel"><div class="label">Rendimiento Cuentas</div><div class="chart-container"><canvas id="p2"></canvas></div></div>
           </div>`;
     document.getElementById('main').innerHTML = h;
     new Chart(document.getElementById('p1'), { type:'doughnut', data:{ labels:Object.keys(totals), datasets:[{data:Object.values(totals), backgroundColor:RED_COLORS, borderWidth:0}] }, options:{ responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{legend:{position:'bottom', labels:{color:'#8a87a0', font:{size:10}, usePointStyle:true}}} }});
