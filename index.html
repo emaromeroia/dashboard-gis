@@ -11,7 +11,6 @@
 :root {
   --bg: #050508; --surface: rgba(12, 12, 18, 0.9); --border: rgba(255,255,255,0.06);
   --text: #e8e4f0; --muted: #5a5870; --lime: #b8ff3c; --radius: 16px;
-  /* Colores por Cuenta */
   --c-clips: #ff60c0; --c-realestate: #ffeb3b; --c-inversiones: #1877F2; --c-business: #4CAF50;
   --tiktok: #3cf0ff; --ig: #ff60c0; --fb: #1877F2; --yt: #FF0000;
 }
@@ -31,9 +30,8 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 .tab.active { color: var(--lime); font-weight: 700; border-bottom: 2px solid var(--lime); }
 
 .content { padding: 2rem; max-width: 1400px; margin: 0 auto; position: relative; }
-.metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 2rem; }
+.metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 2rem; }
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; transition: 0.3s; backdrop-filter: blur(10px); }
-.card:hover { transform: scale(1.03); }
 
 .card-clips { border-top: 4px solid var(--c-clips); } .card-clips .val { color: var(--c-clips); }
 .card-realestate { border-top: 4px solid var(--c-realestate); } .card-realestate .val { color: var(--c-realestate); }
@@ -44,21 +42,21 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 .label { font-size: 10px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
 
 .panel { background: rgba(18,18,26,0.7); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 1.5rem; }
-.chart-container { position: relative; height: 220px; width: 100%; }
+.chart-container { position: relative; height: 250px; width: 100%; }
 
 .bono-banner { 
-  background: linear-gradient(90deg, rgba(184,255,60,0.1), transparent);
-  border: 1px solid rgba(184,255,60,0.2); border-radius: var(--radius);
-  padding: 1rem 1.5rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 15px;
+  background: linear-gradient(90deg, rgba(184,255,60,0.15), transparent);
+  border: 1px solid rgba(184,255,60,0.3); border-radius: var(--radius);
+  padding: 1.2rem 2rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 20px;
 }
 </style>
 </head>
 <body>
 <div class="bg-brand"></div>
 <div id="loading-screen">
-    <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
-    <h2 style="font-weight:800; letter-spacing: 1px;">GIS · MULTICUENTAS</h2>
-    <p id="status" style="color:var(--muted); font-size:11px; margin-top:10px;">Cargando base de datos...</p>
+    <div style="font-size: 3rem; margin-bottom: 1rem;">📈</div>
+    <h2 style="font-weight:800; letter-spacing: 1px;">SINCRO GIS</h2>
+    <p id="status" style="color:var(--muted); font-size:11px; margin-top:10px;">Procesando datos.xlsx...</p>
 </div>
 
 <div id="dash" style="display:none">
@@ -104,8 +102,11 @@ function parse(wb) {
         let bono = null;
         for(let i = hRow + 1; i < rows.length; i++) {
             const fCol = String(rows[i][0] || '').trim();
-            if(!fCol || /total|fecha|link/i.test(fCol)) continue;
+            // Filtro crítico: evitar que fechas o basura del Excel entren como usuarios
+            if(!fCol || /total|fecha|link|2026/i.test(fCol)) continue;
+            
             if(/bono/i.test(fCol)) {
+                // Buscamos la fila de abajo que tiene la cuenta y el monto
                 if(rows[i+1] && rows[i+1][1] && !String(rows[i+1][1]).includes('2026')) {
                     bono = { cuenta: rows[i+1][1], monto: rows[i+1][2] };
                 }
@@ -113,74 +114,8 @@ function parse(wb) {
             }
             const v = { TikTok:pn(rows[i][ci.tik]), Instagram:pn(rows[i][ci.ig]), Facebook:pn(rows[i][ci.fb]), YouTube:pn(rows[i][ci.yt]) };
             const total = pn(rows[i][ci.tot]) || Object.values(v).reduce((a,b)=>a+b,0);
-            if(total > 0) accs.push({ name: fCol, type: fCol.split('.').pop(), ...v, total });
+            if(total > 0 && fCol.includes('@')) accs.push({ name: fCol, type: fCol.split('.').pop(), ...v, total });
         }
         weeks.push({ num: parseInt(m[1]), accounts: accs, bono });
     });
-    return { weeks: weeks.sort((a,b) => a.num - b.num) };
-}
-
-function pn(v) { const n = parseFloat(String(v).replace(/[^0-9.-]/g, '')); return isNaN(n)?0:n; }
-
-function render(data) {
-    const tabs = document.getElementById('tabs'); tabs.innerHTML = '';
-    const res = buildRes(data.weeks);
-    const addTab = (lbl, fn, active=false) => {
-        const b = document.createElement('button');
-        b.className = 'tab' + (active?' active':'');
-        b.textContent = lbl;
-        b.onclick = () => { document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); b.classList.add('active'); fn(); };
-        tabs.appendChild(b);
-    };
-    addTab('Resumen', () => showRes(res, data.weeks), true);
-    data.weeks.forEach(w => addTab('Semana '+w.num, () => showWeek(w)));
-    showRes(res, data.weeks);
-}
-
-function buildRes(weeks) {
-    const res = {};
-    weeks.forEach((w, i) => w.accounts.forEach(a => {
-        if(!res[a.name]) res[a.name] = { type: a.type, total: 0, history: Array(weeks.length).fill(0) };
-        res[a.name].total += a.total; res[a.name].history[i] = a.total;
-    }));
-    return res;
-}
-
-function showRes(res, weeks) {
-    clear();
-    const names = Object.keys(res);
-    const grand = names.reduce((s,n)=>s+res[n].total,0);
-    let h = `<div class="metrics-grid animate-reveal"><div class="card" style="border-top:4px solid var(--lime)"><div class="label">Total Mes</div><div class="val" style="color:var(--lime)">${fmt(grand)}</div></div>`;
-    names.forEach(n => h += `<div class="card card-${res[n].type}"><div class="label">${n}</div><div class="val">${fmt(res[n].total)}</div></div>`);
-    h += `</div><div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:16px;" class="animate-reveal">
-            <div class="panel"><div class="label">Evolución</div><div class="chart-container"><canvas id="c1"></canvas></div></div>
-            <div class="panel"><div class="label">Participación</div><div class="chart-container"><canvas id="c2"></canvas></div></div>
-          </div>`;
-    document.getElementById('main').innerHTML = h;
-    new Chart(document.getElementById('c1'), { type:'line', data:{ labels:weeks.map(w=>'S'+w.num), datasets: names.map(n=>({label:n, data:res[n].history, borderColor:ACC_COLORS[res[n].type], tension:0.4})) }, options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} }});
-    new Chart(document.getElementById('c2'), { type:'doughnut', data:{ labels:names, datasets:[{data:names.map(n=>res[n].total), backgroundColor:names.map(n=>ACC_COLORS[res[n].type]), borderWidth:0}] }, options:{ responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{legend:{position:'bottom', labels:{color:'#8a87a0', font:{size:9}, usePointStyle:true}}} }});
-}
-
-function showWeek(w) {
-    clear();
-    const totals = {TikTok:0, Instagram:0, Facebook:0, YouTube:0};
-    w.accounts.forEach(a => { totals.TikTok+=a.TikTok; totals.Instagram+=a.Instagram; totals.Facebook+=a.Facebook; totals.YouTube+=a.YouTube; });
-    const grand = Object.values(totals).reduce((a,b)=>a+b,0);
-    let h = '';
-    if(w.bono) h += `<div class="bono-banner animate-reveal"><div style="font-size:24px">🏆</div><div><div class="label" style="color:var(--lime);margin:0">Bono Semanal</div><div style="font-size:16px;font-weight:800">${w.bono.cuenta} <span style="color:var(--lime)">(${w.bono.monto})</span></div></div></div>`;
-    h += `<div class="metrics-grid animate-reveal"><div class="card" style="border-top:4px solid var(--lime)"><div class="label">Semana ${w.num}</div><div class="val">${fmt(grand)}</div></div>`;
-    w.accounts.forEach(a => h += `<div class="card card-${a.type}"><div class="label">${a.name}</div><div class="val">${fmt(a.total)}</div></div>`);
-    h += `</div><div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;" class="animate-reveal">
-            <div class="panel"><div class="label">Redes</div><div class="chart-container"><canvas id="p1"></canvas></div></div>
-            <div class="panel"><div class="label">Ranking</div><div class="chart-container"><canvas id="p2"></canvas></div></div>
-          </div>`;
-    document.getElementById('main').innerHTML = h;
-    new Chart(document.getElementById('p1'), { type:'doughnut', data:{ labels:Object.keys(totals), datasets:[{data:Object.values(totals), backgroundColor:RED_COLORS, borderWidth:0}] }, options:{ responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{legend:{position:'bottom', labels:{color:'#8a87a0', font:{size:9}, usePointStyle:true}}} }});
-    new Chart(document.getElementById('p2'), { type:'bar', data:{ labels:w.accounts.map(a=>a.name), datasets:[{data:w.accounts.map(a=>a.total), backgroundColor:w.accounts.map(a=>ACC_COLORS[a.type]), borderRadius:4}] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} }});
-}
-
-function fmt(n) { return Math.round(n).toLocaleString('es-AR'); }
-function clear() { charts.forEach(c=>c.destroy()); charts = []; }
-</script>
-</body>
-</html>
+    return { weeks: weeks.sort((a,
