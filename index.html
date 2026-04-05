@@ -1,143 +1,362 @@
-You are a senior UI designer specialized in futuristic, neon-style SaaS dashboards.
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GIS · NEON MULTICUENTAS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <style>
+        :root {
+            --bg: #030305;
+            --surface: rgba(255, 255, 255, 0.03);
+            --surface-hover: rgba(255, 255, 255, 0.06);
+            --border: rgba(255, 255, 255, 0.08);
+            --text-main: #f0f0f5;
+            --text-dim: #9494a5;
+            
+            /* Neon Palette */
+            --neon-pink: #ff4ecd;
+            --neon-blue: #3baaff;
+            --neon-green: #4dffb2;
+            --neon-yellow: #ffe66d;
+            --neon-purple: #9d50ff;
+            --lime: #b8ff3c;
+        }
 
-I already have a dark-mode analytics dashboard. I want you to **evolve the design into a more modern, neon/glow aesthetic**, while keeping it elegant and not over-saturated.
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            background: var(--bg); 
+            color: var(--text-main); 
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(157, 80, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 10%, rgba(59, 170, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 50% 90%, rgba(77, 255, 178, 0.05) 0%, transparent 50%);
+        }
 
----
+        /* Grain Texture Overlay */
+        body::before {
+            content: "";
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3仿真%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.015; pointer-events: none; z-index: 9999;
+        }
 
-### 🎯 Design Direction
+        .brand-logo {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 35vw; height: 35vw; background: url('logo_oso.jpg') center/contain no-repeat;
+            opacity: 0.03; filter: blur(10px) grayscale(1); z-index: -1;
+        }
 
-* Style: futuristic, minimal, neon glow
-* Inspired by: cyberpunk UI + modern SaaS (Linear, Vercel, Raycast)
-* Must remain clean and professional (NOT gaming UI)
+        /* Nav & Tabs */
+        nav {
+            height: 70px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 2.5rem; background: rgba(3, 3, 5, 0.7); backdrop-filter: blur(20px);
+            position: sticky; top: 0; z-index: 100;
+        }
 
----
+        .logo-text { font-weight: 800; font-size: 1rem; letter-spacing: 2px; color: var(--text-main); }
+        .logo-text span { color: var(--neon-purple); text-shadow: 0 0 15px var(--neon-purple); }
 
-### 🌌 Background (VERY IMPORTANT)
+        .tab-container {
+            display: flex; gap: 2rem; padding: 0 2.5rem; background: rgba(3, 3, 5, 0.4);
+            border-bottom: 1px solid var(--border); overflow-x: auto;
+        }
+        .tab {
+            padding: 1.2rem 0; font-family: 'JetBrains Mono'; font-size: 0.7rem;
+            color: var(--text-dim); border: none; background: none; cursor: pointer;
+            text-transform: uppercase; letter-spacing: 1px; transition: 0.3s;
+            position: relative;
+        }
+        .tab.active { color: var(--text-main); }
+        .tab.active::after {
+            content: ""; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px;
+            background: var(--neon-purple); box-shadow: 0 0 10px var(--neon-purple);
+        }
 
-Redesign the background to feel more alive and premium:
+        /* Grid System */
+        main { max-width: 1400px; margin: 0 auto; padding: 2.5rem; }
+        
+        .kpi-row { display: grid; grid-template-columns: 1.5fr repeat(4, 1fr); gap: 1.2rem; margin-bottom: 2rem; }
+        
+        /* Glass Cards */
+        .card {
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.8rem;
+            transition: all 0.4s cubic-bezier(0.2, 1, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .card:hover {
+            background: var(--surface-hover);
+            transform: translateY(-4px) scale(1.01);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
 
-* Use **dark gradients instead of flat black**
-* Add **subtle blurred color blobs (glow lights)** in the background
-* Colors: purple, blue, pink, green (low opacity)
-* Use **radial gradients + blur effects**
-* Add a slight **noise/grain texture** if possible
+        .primary-kpi {
+            background: linear-gradient(135deg, rgba(157, 80, 255, 0.05) 0%, rgba(0,0,0,0) 100%);
+            border-color: rgba(157, 80, 255, 0.2);
+        }
+        .primary-kpi .val {
+            font-size: 2.8rem; font-weight: 800; color: var(--text-main);
+            text-shadow: 0 0 20px rgba(255,255,255,0.2); letter-spacing: -2px;
+        }
 
-Example ideas:
+        .label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 600; letter-spacing: 1.5px; margin-bottom: 0.8rem; }
+        .val { font-size: 1.6rem; font-weight: 700; }
 
-* Radial glow in corners
-* Soft gradient transitions across the page
-* Layered depth (background ≠ flat)
+        /* Neon Borders per Account */
+        .c-clips { border-bottom: 2px solid var(--neon-pink); }
+        .c-realestate { border-bottom: 2px solid var(--neon-yellow); }
+        .c-inversiones { border-bottom: 2px solid var(--neon-blue); }
+        .c-business { border-bottom: 2px solid var(--neon-green); }
 
----
+        .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+        
+        .panel { padding: 2rem; min-height: 400px; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .panel-title { font-size: 0.8rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
 
-### ✨ Neon / Glow Effects
+        .chart-container { position: relative; height: 320px; width: 100%; }
 
-Apply glow tastefully (important: subtle, not excessive):
+        /* Trophy Banner */
+        .trophy-banner {
+            grid-column: span 2; margin-bottom: 1.5rem;
+            background: linear-gradient(90deg, rgba(184, 255, 60, 0.1), transparent);
+            border: 1px solid rgba(184, 255, 60, 0.2);
+            border-radius: 16px; padding: 1.5rem 2.5rem;
+            display: flex; align-items: center; gap: 2rem;
+            animation: slideIn 1s ease-out;
+        }
+        .trophy-glow { font-size: 2rem; filter: drop-shadow(0 0 10px var(--lime)); }
 
-* Cards:
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
 
-  * Soft outer glow on hover
-  * Slight border glow (1px neon line)
-* Numbers:
+        #loader { 
+            position: fixed; inset: 0; background: var(--bg); z-index: 1000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .pulse-loader {
+            width: 50px; height: 50px; border-radius: 50%;
+            background: var(--neon-purple);
+            box-shadow: 0 0 20px var(--neon-purple);
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.8); opacity: 0.5; } }
 
-  * Very subtle text glow for main KPI only
-* Charts:
+        @media (max-width: 1100px) {
+            .kpi-row, .dashboard-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
 
-  * Neon-colored lines with soft glow
-  * Glow intensifies on hover
+    <div class="brand-logo"></div>
+    <div id="loader"><div class="pulse-loader"></div></div>
 
-Use effects like:
+    <nav>
+        <div class="logo-text">GIS<span>_SINCRO</span></div>
+        <button style="background:none; border:1px solid var(--border); color:var(--text-dim); padding:8px 16px; border-radius:8px; font-size:10px; cursor:pointer;" onclick="location.reload()">REFRESH_DATA</button>
+    </nav>
 
-* box-shadow with blur
-* text-shadow (very subtle)
-* backdrop-filter: blur()
+    <div class="tab-container" id="tabs"></div>
 
----
+    <main id="content" style="display:none;">
+        <div id="bono-slot"></div>
+        <div class="kpi-row" id="kpi-grid"></div>
+        
+        <div class="dashboard-grid">
+            <div class="card panel">
+                <div class="panel-header"><h3 class="panel-title">Evolución de Alcance</h3></div>
+                <div class="chart-container"><canvas id="lineChart"></canvas></div>
+            </div>
+            <div class="card panel">
+                <div class="panel-header"><h3 class="panel-title">Participación de Mercado</h3></div>
+                <div class="chart-container"><canvas id="donutChart"></canvas></div>
+            </div>
+        </div>
+    </main>
 
-### 🎨 Color System Upgrade
+    <script>
+        const COLORS = {
+            clips: '#ff4ecd',
+            realestate: '#ffe66d',
+            inversiones: '#3baaff',
+            business: '#4dffb2',
+            platforms: ['#3baaff', '#ff4ecd', '#1877f2', '#ff0000']
+        };
 
-* Keep a **dark base (almost black / deep navy)**
-* Neon accent colors:
+        let dashboardData = { weeks: [], summary: {} };
+        let charts = {};
 
-  * Pink (#ff4ecd)
-  * Blue (#3baaff)
-  * Green (#4dffb2)
-  * Yellow (#ffe66d)
-* Use them consistently per account
-* Avoid flat colors → always slightly glowing or gradient-based
+        window.onload = async () => {
+            try {
+                const res = await fetch('datos.xlsx?v=' + Date.now());
+                const buf = await res.arrayBuffer();
+                const wb = XLSX.read(buf, {type:'array', cellDates:true});
+                process(wb);
+                setupUI();
+            } catch(e) {
+                document.getElementById('loader').innerHTML = "<p style='color:red'>DATA_NOT_FOUND: Sube datos.xlsx</p>";
+            }
+        };
 
----
+        function process(wb) {
+            wb.SheetNames.forEach(n => {
+                const m = n.match(/semana\s*(\d+)/i);
+                if(!m) return;
+                const rows = XLSX.utils.sheet_to_json(wb.Sheets[n], {header:1, defval:0});
+                const hIdx = rows.findIndex(r => r.some(c => String(c).toLowerCase().includes('tiktok')));
+                if(hIdx < 0) return;
 
-### 🧱 Cards (Glass / Neon Style)
+                const week = { num: m[1], accs: [], bono: null };
+                for(let i = hIdx + 1; i < rows.length; i++) {
+                    const label = String(rows[i][0] || '').trim();
+                    if(!label || /total|fecha|2026/i.test(label)) continue;
+                    if(/bono/i.test(label) && m[1] == "1") {
+                        week.bono = { user: "@giselarojas.inversiones", amt: "$50" };
+                        continue;
+                    }
+                    if(label.includes('@')) {
+                        const type = label.split('.').pop();
+                        const total = parseFloat(rows[i][5]) || 0;
+                        week.accs.push({ name: label, type, total, tiktok: rows[i][1], ig: rows[i][2], fb: rows[i][3], yt: rows[i][4] });
+                        
+                        if(!dashboardData.summary[label]) dashboardData.summary[label] = { type, total: 0, history: [] };
+                        dashboardData.summary[label].total += total;
+                        dashboardData.summary[label].history.push(total);
+                    }
+                }
+                dashboardData.weeks.push(week);
+            });
+            dashboardData.weeks.sort((a,b) => a.num - b.num);
+        }
 
-* Use **glassmorphism light effect**:
+        function setupUI() {
+            const tabs = document.getElementById('tabs');
+            const add = (id, text, active=false) => {
+                const b = document.createElement('button');
+                b.className = `tab ${active?'active':''}`;
+                b.innerText = text;
+                b.onclick = (e) => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    e.target.classList.add('active');
+                    render(id);
+                };
+                tabs.appendChild(b);
+            };
+            add('all', 'Resumen Mensual', true);
+            dashboardData.weeks.forEach(w => add(w.num, `Semana ${w.num}`));
+            
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+            render('all');
+        }
 
-  * background: rgba(255,255,255,0.03–0.06)
-  * backdrop blur
-* Add subtle borders:
+        function render(view) {
+            const grid = document.getElementById('kpi-grid');
+            const bonoSlot = document.getElementById('bono-slot');
+            grid.innerHTML = ''; bonoSlot.innerHTML = '';
+            
+            if(view === 'all') {
+                const total = Object.values(dashboardData.summary).reduce((a,b)=>a+b.total, 0);
+                grid.innerHTML = `<div class="card primary-kpi"><div class="label">Total Alcance Mes</div><div class="val">${fmt(total)}</div></div>`;
+                Object.entries(dashboardData.summary).forEach(([name, d]) => {
+                    grid.innerHTML += `<div class="card c-${d.type}"><div class="label">${name}</div><div class="val">${fmt(d.total)}</div></div>`;
+                });
+                updateCharts('all');
+            } else {
+                const week = dashboardData.weeks.find(w => w.num == view);
+                const total = week.accs.reduce((a,b)=>a+b.total, 0);
+                grid.innerHTML = `<div class="card primary-kpi"><div class="label">Total Semana ${view}</div><div class="val">${fmt(total)}</div></div>`;
+                week.accs.forEach(a => {
+                    grid.innerHTML += `<div class="card c-${a.type}"><div class="label">${a.name}</div><div class="val">${fmt(a.total)}</div></div>`;
+                });
+                if(week.bono) {
+                    bonoSlot.innerHTML = `<div class="trophy-banner"><div class="trophy-glow">🏆</div><div><div class="label" style="margin:0;color:var(--lime)">Bono Semanal</div><div style="font-size:1.2rem;font-weight:800">${week.bono.user} ha ganado ${week.bono.amt}</div></div></div>`;
+                }
+                updateCharts(view);
+            }
+        }
 
-  * rgba neon color with low opacity
-* Rounded corners (12–16px)
-* Soft shadows + glow
+        function updateCharts(view) {
+            Object.values(charts).forEach(c => c.destroy());
+            const lineCtx = document.getElementById('lineChart').getContext('2d');
+            const donutCtx = document.getElementById('donutChart').getContext('2d');
 
----
+            const theme = {
+                responsive: true, maintainAspectRatio: false,
+                scales: { 
+                    y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#666', font: { size: 10 } } },
+                    x: { grid: { display: false }, ticks: { color: '#666', font: { size: 10 } } }
+                },
+                plugins: { 
+                    legend: { position: 'top', align: 'end', labels: { color: '#999', boxWidth: 10, usePointStyle: true, font: { size: 9 } } },
+                    tooltip: { backgroundColor: '#000', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 12 }
+                }
+            };
 
-### 📊 Charts
+            if(view === 'all') {
+                charts.line = new Chart(lineCtx, {
+                    type: 'line',
+                    data: {
+                        labels: dashboardData.weeks.map(w => `Sem ${w.num}`),
+                        datasets: Object.entries(dashboardData.summary).map(([name, d]) => ({
+                            label: name, data: d.history, borderColor: COLORS[d.type],
+                            tension: 0.4, borderWidth: 3, pointRadius: 0, 
+                            shadowBlur: 15, shadowColor: COLORS[d.type]
+                        }))
+                    },
+                    options: theme
+                });
 
-* Lines should:
+                charts.donut = new Chart(donutCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(dashboardData.summary),
+                        datasets: [{
+                            data: Object.values(dashboardData.summary).map(d => d.total),
+                            backgroundColor: Object.values(dashboardData.summary).map(d => COLORS[d.type]),
+                            borderWidth: 0, hoverOffset: 15
+                        }]
+                    },
+                    options: { ...theme, cutout: '75%', scales: undefined }
+                });
+            } else {
+                const week = dashboardData.weeks.find(w => w.num == view);
+                charts.line = new Chart(lineCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: week.accs.map(a => a.name.split('.')[1]),
+                        datasets: [{ data: week.accs.map(a => a.total), backgroundColor: week.accs.map(a => COLORS[a.type]), borderRadius: 8 }]
+                    },
+                    options: { ...theme, plugins: { legend: { display: false } } }
+                });
 
-  * Glow softly
-  * Be slightly thicker
-* Add gradient strokes if possible
-* Hover interaction:
+                const platforms = ['TikTok', 'Instagram', 'Facebook', 'YouTube'];
+                const platData = platforms.map(p => week.accs.reduce((sum, a) => sum + (a[p.toLowerCase()] || 0), 0));
 
-  * Highlight one line
-  * Dim others
+                charts.donut = new Chart(donutCtx, {
+                    type: 'doughnut',
+                    data: { labels: platforms, datasets: [{ data: platData, backgroundColor: COLORS.platforms, borderWidth: 0 }] },
+                    options: { ...theme, cutout: '75%', scales: undefined }
+                });
+            }
+        }
 
----
-
-### 🍩 Donut Chart
-
-* Add glow to segments
-* Smooth gradients instead of flat fills
-* Slight outer glow around the chart
-* Center label with subtle glow
-
----
-
-### 🔤 Typography
-
-* Keep it clean and readable
-* Use glow ONLY for:
-
-  * Main KPI
-  * Important highlights
-* Everything else stays neutral (gray/white)
-
----
-
-### ⚡ Micro-interactions
-
-* Hover on cards → glow intensifies
-* Smooth transitions (200–300ms ease)
-* Slight scale (1.01–1.02 max)
-
----
-
-### 🚫 Important Constraints
-
-* Do NOT overuse glow (keep it premium)
-* Maintain readability at all times
-* Avoid visual clutter
-
----
-
-### 🎯 Output
-
-* Return clean HTML + CSS (and JS if needed)
-* Use modern CSS (gradients, blur, shadows)
-* No explanations, only code
-
----
-
-Transform the dashboard into a modern neon-glow interface with depth and atmosphere.
+        function fmt(n) { return Math.round(n).toLocaleString('es-AR'); }
+    </script>
+</body>
+</html>
