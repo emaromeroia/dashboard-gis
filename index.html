@@ -179,7 +179,7 @@
     </div>
 
     <nav>
-        <div class="logo-text">GIS<span>_QUANTUM</span></div>
+        <div class="logo-text">GIS<span></span></div>
         <button style="background:none; border:1px solid var(--border); color:var(--text-dim); padding:8px 16px; border-radius:8px; font-size:10px; cursor:pointer;" onclick="location.reload()">RECALIBRATE_DATA</button>
     </nav>
 
@@ -274,8 +274,8 @@
                 };
                 tabs.appendChild(b);
             };
-            add('all', 'Network Summary', true);
-            db.weeks.forEach(w => add(w.num, `Protocol S${w.num}`));
+            add('all', 'RESUMEN MENSUAL', true);
+            db.weeks.forEach(w => add(w.num, `SEMANA ${w.num}`));
             
             document.getElementById('loader').style.display = 'none';
             document.getElementById('content').style.display = 'block';
