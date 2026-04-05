@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GIS · Quantum Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@300;400;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <style>
+        :root {
+            --bg: #050508; --surface: #0c0c12; --border: rgba(255,255,255,0.06);
+            --text: #e8e4f0; --muted: #5a5870; --lime: #b8ff3c; --radius: 14px;
+            --tiktok: #3cf0ff; --ig: #ff60c0; --fb: #60ffb0; --yt: #ffb840;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; }
+        #upload-screen { height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .drop-zone { width: 400px; padding: 3rem; border: 1px solid var(--border); border-radius: var(--radius); text-align: center; background: var(--surface); cursor: pointer; }
+        .topbar { padding: 1rem 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; sticky: top; background: rgba(5,5,8,0.9); backdrop-filter: blur(10px); }
+        .tab-bar { display: flex; gap: 5px; padding: 0 2rem; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; }
+        .tab { padding: 12px 20px; color: var(--muted); border: none; background: none; cursor: pointer; font-family: inherit; font-size: 11px; }
+        .tab.active { color: var(--lime); border-bottom: 2px solid var(--lime); }
+        .content { padding: 2rem; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; }
+        .hero { border-left: 4px solid var(--lime); }
+        .val { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; }
+        .acc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; }
+        canvas { max-height: 300px; }
+    </style>
+</head>
+<body>
+    <div id="upload-screen">
+        <div class="drop-zone" onclick="document.getElementById('f').click()">
+            <div style="font-size:3rem">📊</div>
+            <h2 style="font-family:'Syne'">Quantum Live</h2>
+            <p style="color:var(--muted); font-size:10px">Esperando datos.xlsx...</p>
+            <input type="file" id="f" style="display:none" onchange="manual(this)">
+        </div>
+    </div>
+
+    <div id="dash" style="display:none">
+        <div class="topbar">
+            <div style="font-family:'Syne'; font-weight:800">GIS · QUANTUM</div>
+            <button onclick="location.reload()" style="background:none; border:1px solid var(--border); color:var(--muted); padding:5px 10px; border-radius:4px; font-size:10px">RECARGAR</button>
+        </div>
+        <div class="tab-bar" id="tabs"></div>
+        <div class="content" id="main"></div>
+    </div>
+
+    <script>
+        const PLATS = ['TikTok','Instagram','Facebook','YouTube'];
+        const COLORS = ['#b8ff3c','#3cf0ff','#ff60c0','#60ffb0','#ffb840'];
+        let charts = [];
+
+        window.onload = async () => {
+            try {
+                const r = await fetch('datos.xlsx');
+                if(!r.ok) throw 0;
+                const ab = await r.arrayBuffer();
+                start(ab);
+            } catch(e) {}
+        };
+
+        function manual(input) { if(input.files[0]) { const rd = new FileReader(); rd.onload = e => start(e.target.result); rd.readAsArrayBuffer(input.files[0]); } }
+
+        function start(buffer) {
+            const wb = XLSX.read(buffer, {type:'array', cellDates:true});
+            const data = parse(wb);
+            document.getElementById('upload-screen').style.display = 'none';
+            document.getElementById('dash').style.display = 'block';
+            render(data);
+        }
+
+        function parse(wb) {
+            const weeks = [];
+            wb.SheetNames.forEach(n => {
+                const m = n.match(/semana\s*(\d+)/i);
+                if(!m) return;
+                const rows = XLSX.utils.sheet_to_json(wb.Sheets[n], {header:1, defval:''});
+                let hRow = rows.findIndex(r => r.some(c => String(c).toLowerCase().includes('tiktok')));
+                if(hRow < 0) return;
+                const h = rows[hRow].map(c => String(c).toLowerCase());
+                const ci = { tik: h.indexOf('tiktok'), ig: h.indexOf('instagram'), fb: h.indexOf('facebook'), yt: h.indexOf('youtube') };
+                const accs = [];
+                for(let i=hRow+2; i<rows.length; i++){
+                    const name = String(rows[i][0] || '').trim();
+                    if(!name || /total|bono/i.test(name)) continue;
+                    const v = { TikTok:pn(rows[i][ci.tik]), Instagram:pn(rows[i][ci.ig]), Facebook:pn(rows[i][ci.fb]), YouTube:pn(rows[i][ci.yt]) };
+                    accs.push({ name, ...v, total: Object.values(v).reduce((a,b)=>a+b,0) });
+                }
+                weeks.push({ num: parseInt(m[1]), accounts: accs });
+            });
+            return { weeks: weeks.sort((a,b)=>a.num-b.num) };
+        }
+
+        function pn(v) { const n = parseFloat(String(v).replace(/[^0-9.-]/g, '')); return isNaN(n)?0:n; }
+
+        function render(data) {
+            const container = document.getElementById('tabs');
+            container.innerHTML = '';
+            
+            const resumen = buildRes(data.weeks);
+            const addTab = (lbl, fn, active=false) => {
+                const b = document.createElement('button');
+                b.className = 'tab' + (active?' active':'');
+                b.textContent = lbl.toUpperCase();
+                b.onclick = () => { document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); b.classList.add('active'); fn(); };
+                container.appendChild(b);
+            };
+
+            addTab('Resumen Mensual', () => showRes(resumen, data.weeks), true);
+            data.weeks.forEach(w => addTab('Semana '+w.num, () => showWeek(w)));
+            showRes(resumen, data.weeks);
+        }
+
+        function buildRes(weeks) {
+            const res = {};
+            weeks.forEach((w, i) => w.accounts.forEach(a => {
+                if(!res[a.name]) res[a.name] = { total: 0, history: Array(weeks.length).fill(0) };
+                res[a.name].total += a.total; res[a.name].history[i] = a.total;
+            }));
+            return res;
+        }
+
+        function showRes(res, weeks) {
+            clear();
+            const names = Object.keys(res);
+            const grand = names.reduce((s,n)=>s+res[n].total,0);
+            let h = `<div class="metrics-grid"><div class="card hero"><div style="font-size:9px;color:var(--muted)">MES TOTAL</div><div class="val" style="color:var(--lime)">${fmt(grand)}</div></div>`;
+            names.slice(0,3).forEach((n,i) => h += `<div class="card"><div style="font-size:9px;color:var(--muted)">${n}</div><div class="val">${fmt(res[n].total)}</div></div>`);
+            h += `</div><div class="card" style="margin-bottom:1rem"><canvas id="c1"></canvas></div><div class="card"><canvas id="c2"></canvas></div>`;
+            document.getElementById('main').innerHTML = h;
+            new Chart(document.getElementById('c1'), { type:'line', data:{ labels:weeks.map(w=>'S'+w.num), datasets: names.map((n,i)=>({label:n, data:res[n].history, borderColor:COLORS[i%5], tension:0.4})) }});
+            new Chart(document.getElementById('c2'), { type:'bar', data:{ labels:names, datasets:[{label:'Total', data:names.map(n=>res[n].total), backgroundColor:COLORS}] }, options:{indexAxis:'y'}});
+        }
+
+        function showWeek(w) {
+            clear();
+            const totals = {TikTok:0, Instagram:0, Facebook:0, YouTube:0};
+            w.accounts.forEach(a => PLATS.forEach(p => totals[p] += a[p]));
+            const total = Object.values(totals).reduce((a,b)=>a+b,0);
+            let h = `<div class="metrics-grid"><div class="card hero"><div style="font-size:9px;color:var(--muted)">SEMANA ${w.num}</div><div class="val">${fmt(total)}</div></div>`;
+            PLATS.forEach(p => h += `<div class="card"><div style="font-size:9px;color:var(--muted)">${p}</div><div class="val" style="font-size:16px">${fmt(totals[p])}</div></div>`);
+            h += `</div><div class="acc-grid">`;
+            w.accounts.forEach(a => h += `<div class="card"><div style="font-weight:700;margin-bottom:8px">${a.name}</div><div class="val" style="color:var(--lime);font-size:18px">${fmt(a.total)}</div></div>`);
+            h += `</div>`;
+            document.getElementById('main').innerHTML = h;
+        }
+
+        function fmt(n) { return Math.round(n).toLocaleString('es-AR'); }
+        function clear() { charts.forEach(c=>c.destroy()); charts = []; }
+    </script>
+</body>
+</html>
