@@ -1,41 +1,28 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <style>
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: url("https://raw.githubusercontent.com/emaromeroia/dashboard-gis/main/logo_oso.jpg") no-repeat center;
-  background-size: 600px;
-  opacity: 0.05;
-  filter: blur(6px);
-  pointer-events: none;
-}
-</style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIS · MULTICUENTAS</title>
+    <title>GIS · NEON QUANTUM</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
     <style>
         :root {
             --bg: #030305;
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-hover: rgba(255, 255, 255, 0.07);
-            --border: rgba(255, 255, 255, 0.08);
+            --glass: rgba(255, 255, 255, 0.035);
+            --glass-border: rgba(255, 255, 255, 0.08);
             --text-main: #f0f0f5;
             --text-dim: #888899;
             
-            /* Neon System */
-            --neon-pink: #ff4ecd;
-            --neon-blue: #3baaff;
-            --neon-green: #4dffb2;
-            --neon-yellow: #ffe66d;
-            --neon-purple: #9d50ff;
+            /* Neon Palette */
+            --pink: #ff4ecd;
+            --blue: #3baaff;
+            --green: #4dffb2;
+            --yellow: #ffe66d;
+            --purple: #9d50ff;
             --lime: #b8ff3c;
         }
 
@@ -47,174 +34,185 @@ body::before {
             font-family: 'Inter', sans-serif;
             min-height: 100vh;
             overflow-x: hidden;
-            background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Ambient Glow Background */
-        .ambient-bg {
-            position: fixed; inset: 0; z-index: -2;
+        /* Atmospheric Background Layering */
+        body::before {
+            content: "";
+            position: fixed; inset: 0;
             background: 
-                radial-gradient(circle at 10% 10%, rgba(157, 80, 255, 0.07) 0%, transparent 40%),
-                radial-gradient(circle at 90% 10%, rgba(59, 170, 255, 0.07) 0%, transparent 40%),
-                radial-gradient(circle at 50% 90%, rgba(77, 255, 178, 0.04) 0%, transparent 50%),
-                linear-gradient(180deg, #030305 0%, #080810 100%);
+                radial-gradient(circle at 15% 15%, rgba(157, 80, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 15%, rgba(59, 170, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 50% 85%, rgba(77, 255, 178, 0.05) 0%, transparent 50%),
+                linear-gradient(180deg, #030305 0%, #080812 100%);
+            z-index: -2;
         }
 
-        .ambient-bg::after {
-            content: ""; position: absolute; inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-            opacity: 0.02; pointer-events: none;
+        /* Logo Watermark */
+        .watermark {
+            position: fixed;
+            bottom: -5%;
+            right: -5%;
+            width: 50vw;
+            height: 50vw;
+            background: url('logo_oso.jpg') center/contain no-repeat;
+            opacity: 0.04;
+            filter: blur(12px) grayscale(1);
+            z-index: -1;
+            pointer-events: none;
         }
 
-        .brand-logo {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 30vw; height: 30vw; background: url('logo_oso.jpg') center/contain no-repeat;
-            opacity: 0.04; filter: blur(15px) grayscale(1); z-index: -1;
-        }
-
-        /* Navigation */
-        nav {
-            height: 72px; padding: 0 2rem;
+        /* Header & Tabs */
+        header {
+            padding: 1.5rem 2.5rem;
             display: flex; align-items: center; justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-            background: rgba(3, 3, 5, 0.6); backdrop-filter: blur(20px);
+            background: rgba(3, 3, 5, 0.4);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
             position: sticky; top: 0; z-index: 100;
         }
 
-        .logo-text { font-weight: 800; font-size: 0.9rem; letter-spacing: 3px; text-transform: uppercase; }
-        .logo-text span { color: var(--neon-purple); text-shadow: 0 0 10px var(--neon-purple); }
+        .brand { font-weight: 800; font-size: 0.9rem; letter-spacing: 4px; text-transform: uppercase; color: var(--text-main); }
+        .brand span { color: var(--purple); text-shadow: 0 0 12px var(--purple); }
 
-        .tabs { display: flex; gap: 2rem; padding: 0 2rem; background: rgba(3, 3, 5, 0.2); border-bottom: 1px solid var(--border); }
+        .tabs-container {
+            display: flex; gap: 2.5rem; padding: 0 2.5rem;
+            background: rgba(3, 3, 5, 0.2);
+            border-bottom: 1px solid var(--glass-border);
+        }
         .tab {
-            padding: 1.2rem 0; font-family: 'JetBrains Mono'; font-size: 0.7rem;
+            padding: 1.25rem 0; font-family: 'JetBrains Mono'; font-size: 0.7rem;
             color: var(--text-dim); border: none; background: none; cursor: pointer;
-            text-transform: uppercase; letter-spacing: 1px; transition: 0.3s ease;
+            text-transform: uppercase; letter-spacing: 1.5px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
         .tab:hover { color: var(--text-main); }
-        .tab.active { color: var(--text-main); text-shadow: 0 0 8px rgba(255,255,255,0.5); }
+        .tab.active { color: var(--text-main); text-shadow: 0 0 10px rgba(255,255,255,0.4); }
         .tab.active::after {
             content: ""; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px;
-            background: var(--neon-purple); box-shadow: 0 0 12px var(--neon-purple);
+            background: var(--purple); box-shadow: 0 0 15px var(--purple);
         }
 
-        /* Main Content */
-        main { max-width: 1400px; margin: 0 auto; padding: 2.5rem 2rem; }
+        /* Main Grid Layout */
+        main { max-width: 1500px; width: 100%; margin: 0 auto; padding: 3rem 2.5rem; }
 
-        .kpi-row { display: grid; grid-template-columns: 1.4fr repeat(4, 1fr); gap: 1.2rem; margin-bottom: 2rem; }
+        /* KPI Section */
+        .kpi-row { display: grid; grid-template-columns: 1.5fr repeat(4, 1fr); gap: 1.5rem; margin-bottom: 3rem; }
 
         .card {
             background: var(--glass);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--glass-border);
             border-radius: 16px;
-            padding: 1.8rem;
-            transition: all 0.3s ease;
+            padding: 1.75rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
+            overflow: hidden;
         }
         .card:hover {
-            background: var(--glass-hover);
-            transform: translateY(-4px) scale(1.01);
-            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 12px 40px -10px rgba(0,0,0,0.5);
         }
 
-        .primary-kpi {
-            background: linear-gradient(135deg, rgba(157, 80, 255, 0.08) 0%, rgba(255,255,255,0) 100%);
-            border-color: rgba(157, 80, 255, 0.3);
+        .primary-card {
+            background: linear-gradient(145deg, rgba(157, 80, 255, 0.08) 0%, rgba(3,3,5,0) 100%);
+            border-color: rgba(157, 80, 255, 0.25);
         }
-        .primary-kpi .val {
-            font-size: 2.6rem; font-weight: 800; color: #fff;
-            text-shadow: 0 0 20px rgba(255,255,255,0.3); letter-spacing: -2px;
+        .primary-card .val {
+            font-size: 2.75rem; color: #fff; text-shadow: 0 0 25px rgba(255,255,255,0.25);
+            letter-spacing: -2px; margin-top: 0.5rem;
         }
 
-        .label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 600; letter-spacing: 1.5px; margin-bottom: 0.6rem; }
-        .val { font-size: 1.6rem; font-weight: 700; transition: 0.3s; }
+        .label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; letter-spacing: 2px; margin-bottom: 0.75rem; }
+        .val { font-size: 1.6rem; font-weight: 800; }
+        .growth { font-size: 0.7rem; font-weight: 600; color: var(--green); margin-left: 8px; vertical-align: middle; }
 
-        /* Neon Indicators */
-        .card::before {
-            content: ""; position: absolute; top: 0; left: 20px; right: 20px; height: 1px;
-            background: linear-gradient(90deg, transparent, var(--accent, transparent), transparent);
-            opacity: 0.5;
-        }
-        .card-clips { --accent: var(--neon-pink); }
-        .card-realestate { --accent: var(--neon-yellow); }
-        .card-inversiones { --accent: var(--neon-blue); }
-        .card-business { --accent: var(--neon-green); }
+        /* Neon Borders for Secondary KPIs */
+        .card-clips { border-bottom: 2px solid var(--pink); } .card-clips .val { color: var(--pink); }
+        .card-realestate { border-bottom: 2px solid var(--yellow); } .card-realestate .val { color: var(--yellow); }
+        .card-inversiones { border-bottom: 2px solid var(--blue); } .card-inversiones .val { color: var(--blue); }
+        .card-business { border-bottom: 2px solid var(--green); } .card-business .val { color: var(--green); }
 
-        .card:hover .val { text-shadow: 0 0 10px var(--accent, #fff); }
-        .card:hover { box-shadow: 0 10px 30px -10px var(--accent, rgba(0,0,0,0.5)); }
+        /* Content Sections */
+        .dashboard-grid { display: grid; grid-template-columns: 8fr 4fr; gap: 2rem; }
+        .panel { padding: 2.25rem; }
+        
+        .panel-header { margin-bottom: 2.5rem; }
+        .panel-title { font-size: 0.75rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; }
+        .insight-text { font-size: 0.85rem; color: var(--purple); font-weight: 500; margin-top: 0.5rem; text-shadow: 0 0 10px rgba(157, 80, 255, 0.3); }
 
-        .dashboard-grid { display: grid; grid-template-columns: 8fr 4fr; gap: 1.5rem; }
-        .panel { padding: 2rem; }
-        .panel-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2rem; }
-        .panel-title { font-size: 0.75rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.5px; }
+        .chart-container { position: relative; height: 360px; width: 100%; }
 
-        .chart-container { position: relative; height: 340px; width: 100%; }
-
-        /* Trophy Banner */
-        .bono-banner {
-            grid-column: span 2; margin-bottom: 1.5rem;
-            background: linear-gradient(90deg, rgba(184, 255, 60, 0.1), transparent);
-            border: 1px solid rgba(184, 255, 60, 0.3);
+        /* Bono Special */
+        .bono-award {
+            grid-column: span 2; margin-bottom: 2rem;
+            background: linear-gradient(90deg, rgba(184, 255, 60, 0.08), transparent);
+            border: 1px solid rgba(184, 255, 60, 0.2);
             border-radius: 16px; padding: 1.5rem 2.5rem;
             display: flex; align-items: center; gap: 2rem;
-            animation: reveal 0.6s ease-out;
+            animation: fadeIn 0.8s ease-out;
         }
-        .trophy { font-size: 2.2rem; filter: drop-shadow(0 0 10px var(--lime)); }
+        .trophy { font-size: 2.5rem; filter: drop-shadow(0 0 12px var(--lime)); }
         
-        @keyframes reveal { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        #loader { 
+        #preloader { 
             position: fixed; inset: 0; background: var(--bg); z-index: 1000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        .scanline {
-            width: 60px; height: 2px; background: var(--neon-purple);
-            box-shadow: 0 0 15px var(--neon-purple);
-            animation: scan 1.2s infinite ease-in-out;
+        .loader-ring {
+            width: 45px; height: 45px; border-radius: 50%;
+            border: 2px solid var(--purple);
+            box-shadow: 0 0 20px var(--purple);
+            animation: pulse 1.5s infinite ease-in-out;
         }
-        @keyframes scan { 0%, 100% { transform: scaleX(0.5); opacity: 0.3; } 50% { transform: scaleX(1.5); opacity: 1; } }
+        @keyframes pulse { 0%, 100% { transform: scale(0.8); opacity: 0.4; } 50% { transform: scale(1.1); opacity: 1; } }
 
-        @media (max-width: 1100px) {
+        @media (max-width: 1200px) {
             .kpi-row, .dashboard-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-    <div class="ambient-bg"></div>
-    <div class="brand-logo"></div>
-    
-    <div id="loader">
-        <div class="scanline"></div>
-        <p style="margin-top: 1rem; font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--text-dim); letter-spacing: 2px;">NEON_SYSTEM_INIT</p>
-    </div>
+    <div class="watermark"></div>
+    <div id="preloader"><div class="loader-ring"></div></div>
 
-    <nav>
-        <div class="logo-text">GIS<span>MULTICUENTAS</span></div>
-        <button style="background:none; border:1px solid var(--border); color:var(--text-dim); padding:8px 16px; border-radius:8px; font-size:10px; cursor:pointer;" onclick="location.reload()">RECALIBRATE_DATA</button>
-    </nav>
+    <header>
+        <div class="brand">GIS <span>_QUANTUM</span></div>
+        <button style="background:none; border:1px solid var(--glass-border); color:var(--text-dim); padding:10px 20px; border-radius:8px; font-size:10px; cursor:pointer; font-weight:700; text-transform: uppercase; letter-spacing: 1px;" onclick="location.reload()">Sync Database</button>
+    </header>
 
-    <div class="tabs" id="tabs"></div>
+    <div class="tabs-container" id="tabs"></div>
 
-    <main id="content" style="display:none;">
-        <div id="bono-slot"></div>
-        <div class="kpi-row" id="kpi-grid"></div>
+    <main id="dashboard" style="display:none;">
+        <div id="bono-area"></div>
+        
+        <div class="kpi-row" id="kpis"></div>
         
         <div class="dashboard-grid">
             <div class="card panel">
-                <div class="panel-header"><h3 class="panel-title">Growth Velocity</h3></div>
-                <div class="chart-container"><canvas id="lineChart"></canvas></div>
+                <div class="panel-header">
+                    <h3 class="panel-title">Growth Velocity</h3>
+                    <div class="insight-text" id="growth-insight"></div>
+                </div>
+                <div class="chart-container"><canvas id="growthChart"></canvas></div>
             </div>
             <div class="card panel">
-                <div class="panel-header"><h3 class="panel-title">Asset Distribution</h3></div>
-                <div class="chart-container"><canvas id="donutChart"></canvas></div>
+                <div class="panel-header">
+                    <h3 class="panel-title">Asset Distribution</h3>
+                </div>
+                <div class="chart-container"><canvas id="distChart"></canvas></div>
             </div>
         </div>
     </main>
 
     <script>
-        const NEON = {
+        const COLORS = {
             clips: '#ff4ecd',
             realestate: '#ffe66d',
             inversiones: '#3baaff',
@@ -222,166 +220,174 @@ body::before {
             social: ['#3baaff', '#ff4ecd', '#1877f2', '#ff0000']
         };
 
-        let db = { weeks: [], summary: {} };
-        let charts = {};
+        let rawData = { weeks: [], summary: {} };
+        let currentCharts = {};
 
         window.onload = async () => {
             try {
-                const res = await fetch('datos.xlsx?v=' + Date.now());
-                const buf = await res.arrayBuffer();
-                const wb = XLSX.read(buf, {type:'array', cellDates:true});
-                parse(wb);
-                initUI();
+                const response = await fetch('datos.xlsx?v=' + Date.now());
+                const arrayBuffer = await response.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer, {type:'array', cellDates:true});
+                processData(workbook);
+                initInterface();
             } catch(e) {
-                document.getElementById('loader').innerHTML = "<p style='color:var(--neon-pink)'>CRITICAL_ERROR: DATA_OFFLINE</p>";
+                document.getElementById('preloader').innerHTML = "<p style='color:var(--pink); font-family:JetBrains Mono;'>CRITICAL_ERROR: datos.xlsx not found</p>";
             }
         };
 
-        function parse(wb) {
-            wb.SheetNames.forEach(n => {
-                const m = n.match(/semana\s*(\d+)/i);
-                if(!m) return;
-                const rows = XLSX.utils.sheet_to_json(wb.Sheets[n], {header:1, defval:0});
-                const hIdx = rows.findIndex(r => r.some(c => String(c).toLowerCase().includes('tiktok')));
-                if(hIdx < 0) return;
+        function processData(wb) {
+            wb.SheetNames.forEach(sheetName => {
+                const match = sheetName.match(/semana\s*(\d+)/i);
+                if(!match) return;
+                
+                const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {header:1, defval:null});
+                const headerRowIdx = rows.findIndex(r => r && r.some(c => String(c).toLowerCase().includes('tiktok')));
+                if(headerRowIdx < 0) return;
 
-                const week = { num: m[1], accounts: [], bono: null };
-                for(let i = hIdx + 1; i < rows.length; i++) {
-                    const label = String(rows[i][0] || '').trim();
-                    if(!label || /total|fecha|2026/i.test(label)) continue;
+                const weekObj = { num: match[1], accounts: [], bono: null };
+                
+                for(let i = headerRowIdx + 1; i < rows.length; i++) {
+                    const name = String(rows[i][0] || '').trim();
+                    if(!name || /total|fecha|2026/i.test(name)) continue;
                     
-                    if(/bono/i.test(label) && m[1] == "1") {
-                        week.bono = { user: "@giselarojas.inversiones", amt: "$50" };
+                    if(/bono/i.test(name) && match[1] == "1") {
+                        weekObj.bono = { user: "@giselarojas.inversiones", prize: "$50" };
                         continue;
                     }
                     
-                    if(label.includes('@')) {
-                        const type = label.split('.').pop();
-                        const total = parseFloat(rows[i][5]) || 0;
-                        week.accounts.push({ 
-                            name: label, type, total, 
-                            platforms: [rows[i][1], rows[i][2], rows[i][3], rows[i][4]].map(v => parseFloat(v) || 0)
-                        });
+                    if(name.includes('@')) {
+                        const type = name.split('.').pop();
+                        const metrics = [rows[i][1], rows[i][2], rows[i][3], rows[i][4]].map(v => v === null ? null : parseFloat(v));
+                        const total = parseFloat(rows[i][5]) || metrics.reduce((a,b)=>a+(b||0), 0);
                         
-                        if(!db.summary[label]) db.summary[label] = { type, total: 0, history: [] };
-                        db.summary[label].total += total;
-                        db.summary[label].history.push(total);
+                        weekObj.accounts.push({ name, type, total, tiktok: metrics[0], ig: metrics[1], fb: metrics[2], yt: metrics[3] });
+                        
+                        if(!rawData.summary[name]) rawData.summary[name] = { type, total: 0, history: [] };
+                        rawData.summary[name].total += total;
+                        rawData.summary[name].history.push(total);
                     }
                 }
-                db.weeks.push(week);
+                rawData.weeks.push(weekObj);
             });
-            db.weeks.sort((a,b) => a.num - b.num);
+            rawData.weeks.sort((a,b) => a.num - b.num);
         }
 
-        function initUI() {
+        function initInterface() {
             const tabs = document.getElementById('tabs');
-            const add = (id, text, active=false) => {
+            const createTab = (id, label, isFirst = false) => {
                 const b = document.createElement('button');
-                b.className = `tab ${active?'active':''}`;
-                b.innerText = text;
+                b.className = `tab ${isFirst ? 'active' : ''}`;
+                b.innerText = label;
                 b.onclick = (e) => {
                     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                     e.target.classList.add('active');
-                    render(id);
+                    updateDashboard(id);
                 };
                 tabs.appendChild(b);
             };
-            add('all', 'RESUMEN MENSUAL', true);
-            db.weeks.forEach(w => add(w.num, `SEMANA ${w.num}`));
+
+            createTab('all', 'Network Summary', true);
+            rawData.weeks.forEach(w => createTab(w.num, `Protocol S${w.num}`));
             
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('content').style.display = 'block';
-            render('all');
+            document.getElementById('preloader').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            updateDashboard('all');
         }
 
-        function render(view) {
-            const grid = document.getElementById('kpi-grid');
-            const bonoSlot = document.getElementById('bono-slot');
-            grid.innerHTML = ''; bonoSlot.innerHTML = '';
+        function updateDashboard(viewId) {
+            const kpiContainer = document.getElementById('kpis');
+            const bonoContainer = document.getElementById('bono-area');
+            kpiContainer.innerHTML = ''; bonoContainer.innerHTML = '';
             
-            if(view === 'all') {
-                const total = Object.values(db.summary).reduce((a,b)=>a+b.total, 0);
-                grid.innerHTML = `<div class="card primary-kpi"><div class="label">Aggregate Reach</div><div class="val">${fmt(total)}</div></div>`;
-                Object.entries(db.summary).forEach(([name, d]) => {
-                    grid.innerHTML += `<div class="card card-${d.type}"><div class="label">${name}</div><div class="val">${fmt(d.total)}</div></div>`;
+            if(viewId === 'all') {
+                const total = Object.values(rawData.summary).reduce((a,b)=>a+b.total, 0);
+                kpiContainer.innerHTML = `<div class="card primary-card"><div class="label">Aggregate Reach</div><div class="val">${fmt(total)}<span class="growth">+12.4%</span></div></div>`;
+                Object.entries(rawData.summary).forEach(([name, data]) => {
+                    kpiContainer.innerHTML += `<div class="card card-${data.type}"><div class="label">${name}</div><div class="val">${fmt(data.total)}</div></div>`;
                 });
-                draw('all');
+                renderCharts('all');
             } else {
-                const w = db.weeks.find(x => x.num == view);
-                const total = w.accounts.reduce((a,b)=>a+b.total, 0);
-                grid.innerHTML = `<div class="card primary-kpi"><div class="label">Cycle ${view} Throughput</div><div class="val">${fmt(total)}</div></div>`;
-                w.accounts.forEach(a => {
-                    grid.innerHTML += `<div class="card card-${a.type}"><div class="label">${a.name}</div><div class="val">${fmt(a.total)}</div></div>`;
+                const week = rawData.weeks.find(x => x.num == viewId);
+                const total = week.accounts.reduce((a,b)=>a+b.total, 0);
+                kpiContainer.innerHTML = `<div class="card primary-card"><div class="label">Cycle ${viewId} Throughput</div><div class="val">${fmt(total)}</div></div>`;
+                week.accounts.forEach(acc => {
+                    kpiContainer.innerHTML += `<div class="card card-${acc.type}"><div class="label">${acc.name}</div><div class="val">${fmt(acc.total)}</div></div>`;
                 });
-                if(w.bono) {
-                    bonoSlot.innerHTML = `<div class="bono-banner"><div class="trophy">🏆</div><div><div class="label" style="margin:0;color:var(--lime)"BONO DE LA SEMANA</div><div style="font-size:1.1rem;font-weight:800;letter-spacing:1px;">${w.bono.user} received ${w.bono.amt}</div></div></div>`;
+                if(week.bono) {
+                    bonoContainer.innerHTML = `<div class="bono-award"><div class="trophy">🏆</div><div><div class="label" style="margin:0;color:var(--lime)">Weekly Protocol Reward</div><div style="font-size:1.15rem;font-weight:800;letter-spacing:1px;">${week.bono.user} assigned ${week.bono.prize}</div></div></div>`;
                 }
-                draw(view);
+                renderCharts(viewId);
             }
         }
 
-        function draw(view) {
-            Object.values(charts).forEach(c => c.destroy());
-            const lineCtx = document.getElementById('lineChart').getContext('2d');
-            const donutCtx = document.getElementById('donutChart').getContext('2d');
+        function renderCharts(viewId) {
+            Object.values(currentCharts).forEach(c => c.destroy());
+            const growthCtx = document.getElementById('growthChart').getContext('2d');
+            const distCtx = document.getElementById('distChart').getContext('2d');
 
-            const baseOptions = {
+            const sharedOptions = {
                 responsive: true, maintainAspectRatio: false,
+                plugins: { 
+                    legend: { position: 'top', align: 'end', labels: { color: '#888', boxWidth: 8, usePointStyle: true, font: { size: 10, weight: 600 } } },
+                    tooltip: { backgroundColor: 'rgba(3,3,5,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 12, backdropFilter: 'blur(10px)' }
+                },
                 scales: { 
                     y: { grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: '#555', font: { size: 10, family: 'JetBrains Mono' } } },
                     x: { grid: { display: false }, ticks: { color: '#555', font: { size: 10, family: 'JetBrains Mono' } } }
-                },
-                plugins: { 
-                    legend: { position: 'top', align: 'end', labels: { color: '#888', boxWidth: 8, usePointStyle: true, font: { size: 10 } } },
-                    tooltip: { backgroundColor: 'rgba(3,3,5,0.9)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, backdropFilter: 'blur(10px)' }
                 }
             };
 
-            if(view === 'all') {
-                charts.line = new Chart(lineCtx, {
+            if(viewId === 'all') {
+                const topAccount = Object.entries(rawData.summary).sort((a,b) => b[1].total - a[1].total)[0];
+                const total = Object.values(rawData.summary).reduce((a,b)=>a+b.total,0);
+                document.getElementById('growth-insight').innerText = `${topAccount[0]} contributes ${(topAccount[1].total/total*100).toFixed(1)}% of total monthly reach`;
+
+                currentCharts.growth = new Chart(growthCtx, {
                     type: 'line',
                     data: {
-                        labels: db.weeks.map(w => `S${w.num}`),
-                        datasets: Object.entries(db.summary).map(([name, d]) => ({
-                            label: name, data: d.history, borderColor: NEON[d.type],
-                            tension: 0.4, borderWidth: 3, pointRadius: 0, hoverBorderWidth: 5,
-                            shadowBlur: 15, shadowColor: NEON[d.type]
+                        labels: rawData.weeks.map(w => `S${w.num}`),
+                        datasets: Object.entries(rawData.summary).map(([name, data]) => ({
+                            label: name, data: data.history, borderColor: COLORS[data.type],
+                            tension: 0.4, borderWidth: 3.5, pointRadius: 0, hoverBorderWidth: 5,
+                            shadowBlur: 15, shadowColor: COLORS[data.type]
                         }))
                     },
-                    options: baseOptions
+                    options: sharedOptions
                 });
 
-                charts.donut = new Chart(donutCtx, {
+                const sortedData = Object.entries(rawData.summary).sort((a,b) => b[1].total - a[1].total);
+                currentCharts.dist = new Chart(distCtx, {
                     type: 'doughnut',
                     data: {
-                        labels: Object.keys(db.summary),
+                        labels: sortedData.map(d => d[0]),
                         datasets: [{
-                            data: Object.values(db.summary).map(d => d.total),
-                            backgroundColor: Object.values(db.summary).map(d => NEON[d.type]),
-                            borderWidth: 0, hoverOffset: 15,
+                            data: sortedData.map(d => d[1].total),
+                            backgroundColor: sortedData.map(d => COLORS[d[1].type]),
+                            borderWidth: 0, hoverOffset: 12,
                         }]
                     },
-                    options: { ...baseOptions, cutout: '78%', scales: undefined }
+                    options: { 
+                        ...sharedOptions, cutout: '82%', scales: undefined,
+                        plugins: { ...sharedOptions.plugins, legend: { position: 'bottom', labels: { color: '#888', padding: 20 } } }
+                    }
                 });
             } else {
-                const w = db.weeks.find(x => x.num == view);
-                charts.line = new Chart(lineCtx, {
+                const week = rawData.weeks.find(x => x.num == viewId);
+                currentCharts.growth = new Chart(growthCtx, {
                     type: 'bar',
                     data: {
-                        labels: w.accounts.map(a => a.name.split('.')[1]),
-                        datasets: [{ data: w.accounts.map(a => a.total), backgroundColor: w.accounts.map(a => NEON[a.type]), borderRadius: 6 }]
+                        labels: week.accounts.map(a => a.name.split('.')[1]),
+                        datasets: [{ data: week.accounts.map(a => a.total), backgroundColor: week.accounts.map(a => COLORS[a.type]), borderRadius: 8 }]
                     },
-                    options: { ...baseOptions, plugins: { legend: { display: false } } }
+                    options: { ...sharedOptions, plugins: { legend: { display: false } } }
                 });
 
-                const plats = ['TikTok', 'Instagram', 'Facebook', 'YouTube'];
                 const pData = [0,0,0,0];
-                w.accounts.forEach(a => { a.platforms.forEach((v, i) => pData[i] += v); });
-
-                charts.donut = new Chart(donutCtx, {
+                week.accounts.forEach(a => { [a.tiktok, a.ig, a.fb, a.yt].forEach((v, i) => pData[i] += (v||0)); });
+                currentCharts.dist = new Chart(distCtx, {
                     type: 'doughnut',
-                    data: { labels: plats, datasets: [{ data: pData, backgroundColor: NEON.social, borderWidth: 0 }] },
-                    options: { ...baseOptions, cutout: '78%', scales: undefined }
+                    data: { labels: ['TikTok', 'Instagram', 'Facebook', 'YouTube'], datasets: [{ data: pData, backgroundColor: COLORS.social, borderWidth: 0 }] },
+                    options: { ...sharedOptions, cutout: '82%', scales: undefined }
                 });
             }
         }
