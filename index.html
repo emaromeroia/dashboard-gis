@@ -11,77 +11,50 @@
 :root {
   --bg: #050508; --surface: #0c0c12; --border: rgba(255,255,255,0.06);
   --text: #e8e4f0; --muted: #5a5870; --lime: #b8ff3c; --radius: 16px;
-  --tiktok: #3cf0ff; --ig: #ff60c0; --fb: #60ffb0; --yt: #ffb840;
+  --tiktok: #3cf0ff; --ig: #ff60c0; --fb: #1877F2; --yt: #FF0000;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; overflow-x: hidden; }
 
-/* Animaciones de Entrada */
-@keyframes reveal { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes reveal { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.animate-reveal { animation: reveal 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 
-.animate-reveal { animation: reveal 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-.delay-1 { animation-delay: 0.1s; }
-.delay-2 { animation-delay: 0.2s; }
-
-.bg-glow { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0; }
-.bg-glow-1 { width: 600px; height: 400px; background: rgba(184,255,60,0.05); top: -100px; left: -200px; }
-
-#loading-screen { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; position: relative; }
-
-.topbar { 
-  padding: 1.2rem 2rem; border-bottom: 1px solid var(--border); 
-  display: flex; justify-content: space-between; align-items: center; 
-  position: sticky; top: 0; background: rgba(5,5,8,0.95); backdrop-filter: blur(20px); z-index: 100; 
-}
-.tab-bar { display: flex; gap: 5px; padding: 0.5rem 2rem; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
-.tab-bar::-webkit-scrollbar { display: none; }
+#loading-screen { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; position: fixed; width: 100%; top: 0; left: 0; background: var(--bg); z-index: 1000; }
+.topbar { padding: 1.2rem 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: rgba(5,5,8,0.95); backdrop-filter: blur(20px); z-index: 100; }
+.tab-bar { display: flex; gap: 5px; padding: 0.5rem 2rem; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; }
 .tab { padding: 12px 20px; color: var(--muted); border: none; background: none; cursor: pointer; font-family: inherit; font-size: 11px; text-transform: uppercase; transition: 0.3s; white-space: nowrap; }
 .tab.active { color: var(--lime); font-weight: 700; border-bottom: 2px solid var(--lime); }
 
-.content { padding: 2rem; max-width: 1400px; margin: 0 auto; z-index: 1; position: relative; }
-
-/* Metrics & Interaction */
+.content { padding: 2rem; max-width: 1400px; margin: 0 auto; }
 .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 2rem; }
-.card { 
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); 
-  padding: 1.8rem; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-  position: relative; overflow: hidden;
-}
-.card:hover { transform: scale(1.03); border-color: rgba(184,255,60,0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-.hero { border-left: 5px solid var(--lime); background: linear-gradient(135deg, rgba(184,255,60,0.07), transparent); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.8rem; transition: transform 0.3s; }
+.card:hover { transform: scale(1.03); border-color: rgba(184,255,60,0.3); }
+.hero { border-left: 5px solid var(--lime); }
+.val { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; color: var(--text); }
+.hero .val { color: var(--lime); text-shadow: 0 0 15px rgba(184,255,60,0.3); }
 
-.val { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; letter-spacing: -1px; }
-.hero .val { color: var(--lime); text-shadow: 0 0 25px rgba(184,255,60,0.4); }
-
-.panel { background: rgba(18,18,26,0.5); border: 1px solid var(--border); border-radius: var(--radius); padding: 25px; margin-bottom: 1.5rem; backdrop-filter: blur(10px); }
-.chart-container { position: relative; height: 350px; width: 100%; }
-
+.panel { background: rgba(18,18,26,0.5); border: 1px solid var(--border); border-radius: var(--radius); padding: 25px; margin-bottom: 1.5rem; }
+.chart-container { position: relative; height: 300px; width: 100%; }
 .acc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
 
-@media (max-width: 768px) {
-  .content { padding: 1rem; }
-  .val { font-size: 26px; }
-  .topbar { padding: 1rem; }
-  .metrics-grid { grid-template-columns: 1fr; }
-}
+@media (max-width: 768px) { .metrics-grid { grid-template-columns: 1fr; } .content { padding: 1rem; } }
 </style>
 </head>
 <body>
-<div class="bg-glow bg-glow-1"></div>
+
 <div id="loading-screen">
-    <div style="font-size: 4rem; margin-bottom: 1.5rem; animation: scaleIn 1s infinite alternate;">📊</div>
-    <h2 style="font-family:'Syne'; font-weight:800; letter-spacing: 2px;">MULTICUENTAS</h2>
-    <p id="status" style="color:var(--muted); font-size:11px; margin-top:10px;">Sincronizando base de datos...</p>
+    <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+    <h2 style="font-family:'Syne'; font-weight:800;">MULTICUENTAS</h2>
+    <p id="status" style="color:var(--muted); font-size:11px; margin-top:10px;">Sincronizando datos...</p>
 </div>
 
 <div id="dash" style="display:none">
     <div class="topbar">
         <div style="display:flex; align-items:center; gap:12px;">
-            <div style="width:10px; height:10px; border-radius:50%; background:var(--lime); box-shadow:0 0 15px var(--lime);"></div>
-            <div style="font-family:'Syne'; font-weight:800; font-size:1.2rem; letter-spacing:1px;">GIS · MULTICUENTAS</div>
+            <div style="width:10px; height:10px; border-radius:50%; background:var(--lime); box-shadow:0 0 10px var(--lime);"></div>
+            <div style="font-family:'Syne'; font-weight:800; font-size:1.1rem;">GIS · MULTICUENTAS</div>
         </div>
-        <button onclick="location.reload()" style="background:none; border:1px solid var(--border); color:var(--muted); padding:8px 16px; border-radius:8px; cursor:pointer; font-size:10px; font-weight:700;">ACTUALIZAR</button>
+        <button onclick="location.reload()" style="background:none; border:1px solid var(--border); color:var(--muted); padding:8px 16px; border-radius:8px; cursor:pointer; font-size:10px;">RECARGAR</button>
     </div>
     <div class="tab-bar" id="tabs"></div>
     <div class="content" id="main"></div>
@@ -89,14 +62,117 @@ body { background: var(--bg); color: var(--text); font-family: 'Space Mono', mon
 
 <script>
 const PLATS = ['TikTok','Instagram','Facebook','YouTube'];
-const COLORS = ['#b8ff3c','#3cf0ff','#ff60c0','#60ffb0','#ffb840'];
+const COLORS = ['#b8ff3c','#3cf0ff','#ff60c0','#1877F2','#FF0000'];
 let charts = [];
 
 window.onload = async () => {
+    const status = document.getElementById('status');
     try {
-        const r = await fetch('datos.xlsx');
-        if(!r.ok) throw new Error();
+        status.innerHTML = "Buscando archivo datos.xlsx...";
+        const r = await fetch('datos.xlsx?v=' + Date.now()); // Evita caché
+        if(!r.ok) throw new Error("No se encontró el archivo");
+        
         const ab = await r.arrayBuffer();
-        setTimeout(() => start(ab), 800);
+        status.innerHTML = "Procesando métricas...";
+        start(ab);
     } catch(e) {
-        document.getElementById('
+        status.innerHTML = "Error: Asegúrate de que el archivo se llame 'datos.xlsx' y esté en GitHub.";
+        status.style.color = "#ff4b4b";
+    }
+};
+
+function start(buffer) {
+    const wb = XLSX.read(buffer, {type:'array', cellDates:true});
+    const data = parse(wb);
+    if(data.weeks.length === 0) {
+        document.getElementById('status').innerHTML = "Error: No se encontraron hojas llamadas 'Semana X'";
+        return;
+    }
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('dash').style.display = 'block';
+    render(data);
+}
+
+function parse(wb) {
+    const weeks = [];
+    wb.SheetNames.forEach(n => {
+        const m = n.match(/semana\s*(\d+)/i);
+        if(!m) return;
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[n], {header:1, defval:''});
+        let hRow = rows.findIndex(r => r.some(c => String(c).toLowerCase().includes('tiktok')));
+        if(hRow < 0) return;
+        
+        const h = rows[hRow].map(c => String(c).toLowerCase());
+        const ci = { tik: h.indexOf('tiktok'), ig: h.indexOf('instagram'), fb: h.indexOf('facebook'), yt: h.indexOf('youtube') };
+        const accs = [];
+        
+        for(let i = hRow + 2; i < rows.length; i++) {
+            const name = String(rows[i][0] || '').trim();
+            if(!name || /total|bono/i.test(name)) continue;
+            const v = { TikTok:pn(rows[i][ci.tik]), Instagram:pn(rows[i][ci.ig]), Facebook:pn(rows[i][ci.fb]), YouTube:pn(rows[i][ci.yt]) };
+            accs.push({ name, ...v, total: Object.values(v).reduce((a,b)=>a+b,0) });
+        }
+        weeks.push({ num: parseInt(m[1]), accounts: accs });
+    });
+    return { weeks: weeks.sort((a,b) => a.num - b.num) };
+}
+
+function pn(v) { const n = parseFloat(String(v).replace(/[^0-9.-]/g, '')); return isNaN(n)?0:n; }
+
+function render(data) {
+    const container = document.getElementById('tabs');
+    container.innerHTML = '';
+    const res = buildRes(data.weeks);
+    
+    const addTab = (lbl, fn, active=false) => {
+        const b = document.createElement('button');
+        b.className = 'tab' + (active?' active':'');
+        b.textContent = lbl;
+        b.onclick = () => { document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); b.classList.add('active'); fn(); };
+        container.appendChild(b);
+    };
+
+    addTab('Resumen Mensual', () => showRes(res, data.weeks), true);
+    data.weeks.forEach(w => addTab('Semana '+w.num, () => showWeek(w)));
+    showRes(res, data.weeks);
+}
+
+function buildRes(weeks) {
+    const res = {};
+    weeks.forEach((w, i) => w.accounts.forEach(a => {
+        if(!res[a.name]) res[a.name] = { total: 0, history: Array(weeks.length).fill(0) };
+        res[a.name].total += a.total; res[a.name].history[i] = a.total;
+    }));
+    return res;
+}
+
+function showRes(res, weeks) {
+    clear();
+    const names = Object.keys(res);
+    const grand = names.reduce((s,n)=>s+res[n].total,0);
+    let h = `<div class="metrics-grid animate-reveal"><div class="card hero"><div style="font-size:10px;color:var(--muted);margin-bottom:8px">TOTAL ALCANCE MES</div><div class="val">${fmt(grand)}</div></div>`;
+    names.slice(0,3).forEach((n,i) => h += `<div class="card"><div style="font-size:10px;color:var(--muted);margin-bottom:8px">${n}</div><div class="val" style="font-size:22px">${fmt(res[n].total)}</div></div>`);
+    h += `</div><div class="panel animate-reveal"><div style="font-size:11px;margin-bottom:20px;color:var(--muted)">EVOLUCIÓN SEMANAL</div><div class="chart-container"><canvas id="c1"></canvas></div></div>`;
+    document.getElementById('main').innerHTML = h;
+    
+    new Chart(document.getElementById('c1'), { type:'line', data:{ labels:weeks.map(w=>'Semana '+w.num), datasets: names.map((n,i)=>({label:n, data:res[n].history, borderColor:COLORS[i%5], tension:0.4})) }, options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#8a87a0', font:{family:'Space Mono', size:10}}}} }});
+}
+
+function showWeek(w) {
+    clear();
+    const totals = {TikTok:0, Instagram:0, Facebook:0, YouTube:0};
+    w.accounts.forEach(a => PLATS.forEach(p => totals[p] += a[p]));
+    const total = Object.values(totals).reduce((a,b)=>a+b,0);
+    let h = `<div class="metrics-grid animate-reveal"><div class="card hero"><div style="font-size:10px;color:var(--muted);margin-bottom:8px">ALCANCE SEMANA ${w.num}</div><div class="val">${fmt(total)}</div></div>`;
+    PLATS.forEach(p => h += `<div class="card"><div style="font-size:10px;color:var(--muted);margin-bottom:8px">${p}</div><div class="val" style="font-size:20px">${fmt(totals[p])}</div></div>`);
+    h += `</div><div class="acc-grid animate-reveal">`;
+    w.accounts.forEach(a => h += `<div class="card"><div style="font-weight:700;margin-bottom:10px;font-size:11px;border-bottom:1px solid var(--border);padding-bottom:5px">${a.name}</div><div class="val" style="color:var(--lime);font-size:22px">${fmt(a.total)}</div></div>`);
+    h += `</div>`;
+    document.getElementById('main').innerHTML = h;
+}
+
+function fmt(n) { return Math.round(n).toLocaleString('es-AR'); }
+function clear() { charts.forEach(c=>c.destroy()); charts = []; }
+</script>
+</body>
+</html>
