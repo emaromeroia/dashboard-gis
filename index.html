@@ -9,12 +9,34 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 :root {
-  --bg: #050508; --surface: #0c0c12; --border: rgba(255,255,255,0.06);
+  --bg: #050508; --surface: rgba(12, 12, 18, 0.8); --border: rgba(255,255,255,0.06);
   --text: #e8e4f0; --muted: #5a5870; --lime: #b8ff3c; --radius: 16px;
+  /* Colores de Cuentas */
+  --c-clips: #ff60c0; /* Rosa */
+  --c-realestate: #ffeb3b; /* Amarillo */
+  --c-inversiones: #1877F2; /* Azul */
+  --c-business: #4CAF50; /* Verde */
+  /* Redes */
   --tiktok: #3cf0ff; --ig: #ff60c0; --fb: #1877F2; --yt: #FF0000;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; overflow-x: hidden; }
+body { 
+    background: var(--bg); 
+    color: var(--text); 
+    font-family: 'Inter', sans-serif; 
+    min-height: 100vh; 
+    overflow-x: hidden;
+}
+
+/* Fondo con Logo Blur */
+.bg-brand {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 60%; height: 60%;
+    background: url('ChatGPT Image 5 abr 2026, 02_56_51 p.m..jpg') no-repeat center;
+    background-size: contain;
+    opacity: 0.04; filter: blur(8px);
+    z-index: -1;
+}
 
 @keyframes reveal { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 .animate-reveal { animation: reveal 0.5s ease-out both; }
@@ -25,15 +47,26 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 .tab { padding: 12px 20px; color: var(--muted); border: none; background: none; cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; transition: 0.3s; white-space: nowrap; }
 .tab.active { color: var(--lime); font-weight: 700; border-bottom: 2px solid var(--lime); }
 
-.content { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+.content { padding: 2rem; max-width: 1400px; margin: 0 auto; position: relative; }
 .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 2rem; }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; transition: transform 0.3s; }
-.card:hover { transform: scale(1.02); border-color: rgba(184,255,60,0.3); }
-.hero { border-left: 5px solid var(--lime); }
-.val { font-size: 32px; font-weight: 800; color: var(--text); letter-spacing: -1px; }
-.hero .val { color: var(--lime); text-shadow: 0 0 15px rgba(184,255,60,0.2); }
 
-.panel { background: rgba(18,18,26,0.5); border: 1px solid var(--border); border-radius: var(--radius); padding: 25px; margin-bottom: 1.5rem; }
+.card { 
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); 
+    padding: 1.5rem; transition: transform 0.3s, border-color 0.3s;
+    backdrop-filter: blur(10px);
+}
+.card:hover { transform: scale(1.02); }
+
+/* Estilos de Cuentas */
+.card-clips { border-left: 5px solid var(--c-clips); } .card-clips .val { color: var(--c-clips); }
+.card-realestate { border-left: 5px solid var(--c-realestate); } .card-realestate .val { color: var(--c-realestate); }
+.card-inversiones { border-left: 5px solid var(--c-inversiones); } .card-inversiones .val { color: var(--c-inversiones); }
+.card-business { border-left: 5px solid var(--c-business); } .card-business .val { color: var(--c-business); }
+
+.val { font-size: 30px; font-weight: 800; letter-spacing: -1px; }
+.label { font-size: 10px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; font-weight: 600; letter-spacing: 1px; }
+
+.panel { background: rgba(18,18,26,0.7); border: 1px solid var(--border); border-radius: var(--radius); padding: 25px; margin-bottom: 1.5rem; }
 .chart-container { position: relative; height: 300px; width: 100%; }
 
 .bono-card { 
@@ -41,37 +74,37 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
   border: 1px solid rgba(184,255,60,0.2); border-radius: var(--radius);
   padding: 1.5rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 20px;
 }
-.bono-icon { font-size: 30px; filter: drop-shadow(0 0 10px var(--lime)); }
+.bono-icon { font-size: 30px; }
 
 .acc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
-.acc-mini-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 4px; }
-
-@media (max-width: 768px) { .metrics-grid { grid-template-columns: 1fr; } }
+.acc-mini-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; }
 </style>
 </head>
 <body>
 
+<div class="bg-brand"></div>
+
 <div id="loading-screen">
     <div style="font-size: 3rem; margin-bottom: 1rem;">📈</div>
-    <h2 style="font-weight:800; letter-spacing: 1px;">MULTICUENTAS</h2>
-    <p id="status" style="color:var(--muted); font-size:11px; margin-top:10px;">Sincronizando datos...</p>
+    <h2 style="font-weight:800; letter-spacing: 1px;">SINCRO GIS</h2>
+    <p id="status" style="color:var(--muted); font-size:11px; margin-top:10px;">Conectando con datos.xlsx...</p>
 </div>
 
 <div id="dash" style="display:none">
     <div class="topbar">
         <div style="display:flex; align-items:center; gap:12px;">
             <div style="width:10px; height:10px; border-radius:50%; background:var(--lime); box-shadow:0 0 10px var(--lime);"></div>
-            <div style="font-weight:800; font-size:1.1rem;">GIS · MULTICUENTAS</div>
+            <div style="font-weight:800; font-size:1rem; letter-spacing: 1px;">GIS · MULTICUENTAS</div>
         </div>
-        <button onclick="location.reload()" style="background:none; border:1px solid var(--border); color:var(--muted); padding:8px 16px; border-radius:8px; cursor:pointer; font-family:'JetBrains Mono'; font-size:10px;">RECARGAR</button>
+        <button onclick="location.reload()" style="background:none; border:1px solid var(--border); color:var(--muted); padding:8px 16px; border-radius:8px; cursor:pointer; font-family:'JetBrains Mono'; font-size:10px;">REFRESCAR</button>
     </div>
     <div class="tab-bar" id="tabs"></div>
     <div class="content" id="main"></div>
 </div>
 
 <script>
-const PLATS = ['TikTok','Instagram','Facebook','YouTube'];
-const COLORS = ['#b8ff3c','#3cf0ff','#ff60c0','#1877F2','#FF0000'];
+const ACC_COLORS = { clips: '#ff60c0', realestate: '#ffeb3b', inversiones: '#1877F2', business: '#4CAF50' };
+const RED_COLORS = ['#3cf0ff','#ff60c0','#1877F2','#FF0000'];
 let charts = [];
 
 window.onload = async () => {
@@ -85,7 +118,7 @@ window.onload = async () => {
         document.getElementById('dash').style.display = 'block';
         render(data);
     } catch(e) {
-        document.getElementById('status').innerHTML = "Error: Sube el archivo 'datos.xlsx' a GitHub.";
+        document.getElementById('status').innerHTML = "Error: Sube 'datos.xlsx' al repositorio.";
     }
 };
 
@@ -97,30 +130,21 @@ function parse(wb) {
         const rows = XLSX.utils.sheet_to_json(wb.Sheets[n], {header:1, defval:''});
         let hRow = rows.findIndex(r => r.some(c => String(c).toLowerCase().includes('tiktok')));
         if(hRow < 0) return;
-        
         const h = rows[hRow].map(c => String(c).toLowerCase());
         const ci = { tik: h.indexOf('tiktok'), ig: h.indexOf('instagram'), fb: h.indexOf('facebook'), yt: h.indexOf('youtube'), tot: h.indexOf('total views') };
-        
         const accs = [];
         let bono = null;
-
         for(let i = hRow + 2; i < rows.length; i++) {
-            const firstCol = String(rows[i][0] || '').trim();
-            if(!firstCol) continue;
-            
-            // Detectar Bono (Trofeo)
-            if(/bono/i.test(firstCol) || (rows[i-1] && /bono/i.test(String(rows[i-1][0])))) {
-               const bCuenta = String(rows[i][1] || '');
-               const bMonto = String(rows[i][2] || '');
-               if(bCuenta && bCuenta !== 'CUENTA GANADORA') bono = { cuenta: bCuenta, monto: bMonto };
+            const fCol = String(rows[i][0] || '').trim();
+            if(!fCol) continue;
+            if(/bono/i.test(fCol)) {
+               if(rows[i+1] && rows[i+1][1]) bono = { cuenta: rows[i+1][1], monto: rows[i+1][2] };
                continue;
             }
-
-            if(/total|fecha|link/i.test(firstCol)) continue;
-
+            if(/total|fecha|ganadora/i.test(fCol)) continue;
             const v = { TikTok:pn(rows[i][ci.tik]), Instagram:pn(rows[i][ci.ig]), Facebook:pn(rows[i][ci.fb]), YouTube:pn(rows[i][ci.yt]) };
             const total = pn(rows[i][ci.tot]) || Object.values(v).reduce((a,b)=>a+b,0);
-            if(total > 0) accs.push({ name: firstCol, ...v, total });
+            if(total > 0) accs.push({ name: fCol, type: fCol.split('.').pop(), ...v, total });
         }
         weeks.push({ num: parseInt(m[1]), accounts: accs, bono });
     });
@@ -130,10 +154,8 @@ function parse(wb) {
 function pn(v) { const n = parseFloat(String(v).replace(/[^0-9.-]/g, '')); return isNaN(n)?0:n; }
 
 function render(data) {
-    const tabs = document.getElementById('tabs');
-    tabs.innerHTML = '';
+    const tabs = document.getElementById('tabs'); tabs.innerHTML = '';
     const res = buildRes(data.weeks);
-    
     const addTab = (lbl, fn, active=false) => {
         const b = document.createElement('button');
         b.className = 'tab' + (active?' active':'');
@@ -141,7 +163,6 @@ function render(data) {
         b.onclick = () => { document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); b.classList.add('active'); fn(); };
         tabs.appendChild(b);
     };
-
     addTab('Resumen', () => showRes(res, data.weeks), true);
     data.weeks.forEach(w => addTab('Semana '+w.num, () => showWeek(w)));
     showRes(res, data.weeks);
@@ -150,7 +171,7 @@ function render(data) {
 function buildRes(weeks) {
     const res = {};
     weeks.forEach((w, i) => w.accounts.forEach(a => {
-        if(!res[a.name]) res[a.name] = { total: 0, history: Array(weeks.length).fill(0) };
+        if(!res[a.name]) res[a.name] = { type: a.type, total: 0, history: Array(weeks.length).fill(0) };
         res[a.name].total += a.total; res[a.name].history[i] = a.total;
     }));
     return res;
@@ -160,42 +181,33 @@ function showRes(res, weeks) {
     clear();
     const names = Object.keys(res);
     const grand = names.reduce((s,n)=>s+res[n].total,0);
-    let h = `<div class="metrics-grid animate-reveal"><div class="card hero"><div style="font-size:10px;color:var(--muted);margin-bottom:8px">TOTAL MES</div><div class="val">${fmt(grand)}</div></div>`;
-    names.forEach((n,i) => h += `<div class="card"><div style="font-size:10px;color:var(--muted);margin-bottom:8px">${n}</div><div class="val" style="font-size:22px">${fmt(res[n].total)}</div></div>`);
-    h += `</div><div class="panel animate-reveal"><div style="font-size:11px;margin-bottom:20px;color:var(--muted)">EVOLUCIÓN MENSUAL</div><div class="chart-container"><canvas id="c1"></canvas></div></div>`;
+    let h = `<div class="metrics-grid animate-reveal"><div class="card card-total"><div class="label">Total Mes</div><div class="val">${fmt(grand)}</div></div>`;
+    names.forEach(n => h += `<div class="card card-${res[n].type}"><div class="label">${n}</div><div class="val">${fmt(res[n].total)}</div></div>`);
+    h += `</div><div class="panel animate-reveal"><div class="label">Evolución Histórica</div><div class="chart-container"><canvas id="c1"></canvas></div></div>`;
     document.getElementById('main').innerHTML = h;
-    
-    new Chart(document.getElementById('c1'), { type:'line', data:{ labels:weeks.map(w=>'Sem '+w.num), datasets: names.map((n,i)=>({label:n, data:res[n].history, borderColor:COLORS[i%5], tension:0.4})) }, options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#8a87a0', font:{size:10}}}} }});
+    new Chart(document.getElementById('c1'), { type:'line', data:{ labels:weeks.map(w=>'S'+w.num), datasets: names.map(n=>({label:n, data:res[n].history, borderColor:ACC_COLORS[res[n].type], tension:0.4})) }, options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#8a87a0', font:{size:10}}}} }});
 }
 
 function showWeek(w) {
     clear();
     const totals = {TikTok:0, Instagram:0, Facebook:0, YouTube:0};
-    w.accounts.forEach(a => PLATS.forEach(p => totals[p] += a[p]));
-    const total = Object.values(totals).reduce((a,b)=>a+b,0);
-    
+    w.accounts.forEach(a => { totals.TikTok+=a.TikTok; totals.Instagram+=a.Instagram; totals.Facebook+=a.Facebook; totals.YouTube+=a.YouTube; });
+    const grand = Object.values(totals).reduce((a,b)=>a+b,0);
     let h = '';
-    if(w.bono) {
-        h += `<div class="bono-card animate-reveal"><div class="bono-icon">🏆</div><div><div style="font-size:10px;color:var(--lime);font-weight:bold">BONO SEMANAL</div><div style="font-size:18px;font-weight:800">${w.bono.cuenta} <span style="color:var(--lime)">(${w.bono.monto})</span></div></div></div>`;
-    }
-
-    h += `<div class="metrics-grid animate-reveal"><div class="card hero"><div style="font-size:10px;color:var(--muted);margin-bottom:8px">TOTAL SEMANA</div><div class="val">${fmt(total)}</div></div>`;
-    PLATS.forEach(p => h += `<div class="card"><div style="font-size:10px;color:var(--muted);margin-bottom:8px">${p}</div><div class="val" style="font-size:22px">${fmt(totals[p])}</div></div>`);
-    
-    h += `</div><div class="grid-2 animate-reveal"><div class="panel"><div style="font-size:10px;color:var(--muted);margin-bottom:15px">APORTE POR PLATAFORMA</div><div class="chart-container"><canvas id="p1"></canvas></div></div><div class="panel"><div style="font-size:10px;color:var(--muted);margin-bottom:15px">RENDIMIENTO POR CUENTA</div><div class="chart-container"><canvas id="p2"></canvas></div></div></div>`;
-    
+    if(w.bono) h += `<div class="bono-card animate-reveal"><div class="bono-icon">🏆</div><div><div class="label" style="color:var(--lime)">Bono Ganado</div><div style="font-size:18px;font-weight:800">${w.bono.cuenta} <span style="color:var(--lime)">(${w.bono.monto})</span></div></div></div>`;
+    h += `<div class="metrics-grid animate-reveal"><div class="card card-total"><div class="label">Semana ${w.num}</div><div class="val">${fmt(grand)}</div></div>`;
+    w.accounts.forEach(a => h += `<div class="card card-${a.type}"><div class="label">${a.name}</div><div class="val">${fmt(a.total)}</div></div>`);
+    h += `</div><div class="grid-2 animate-reveal"><div class="panel"><div class="label">Por Red Social</div><div class="chart-container"><canvas id="p1"></canvas></div></div><div class="panel"><div class="label">Comparativa de Cuentas</div><div class="chart-container"><canvas id="p2"></canvas></div></div></div>`;
     h += `<div class="acc-grid">`;
     w.accounts.forEach(a => {
-        h += `<div class="card animate-reveal"><div style="font-weight:bold;margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:5px">${a.name}</div><div class="val" style="color:var(--lime);font-size:20px">${fmt(a.total)}</div>`;
-        PLATS.forEach(p => h += `<div class="acc-mini-row"><span>${p}</span><span>${fmt(a[p])}</span></div>`);
+        h += `<div class="card card-${a.type} animate-reveal"><div style="font-weight:800;margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:5px;font-size:13px">${a.name}</div>`;
+        Object.keys(totals).forEach((p,i) => h += `<div class="acc-mini-row"><span>${p}</span><span>${fmt(a[p])}</span></div>`);
         h += `</div>`;
     });
     h += `</div>`;
-    
     document.getElementById('main').innerHTML = h;
-
-    new Chart(document.getElementById('p1'), { type:'doughnut', data:{ labels:PLATS, datasets:[{data:PLATS.map(p=>totals[p]), backgroundColor:COLORS.slice(1)}] }, options:{ responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{legend:{position:'bottom', labels:{color:'#8a87a0', font:{size:10}}}} }});
-    new Chart(document.getElementById('p2'), { type:'bar', data:{ labels:w.accounts.map(a=>a.name), datasets:[{label:'Views', data:w.accounts.map(a=>a.total), backgroundColor:COLORS[0]}] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{grid:{color:'rgba(255,255,255,0.05)'}}} }});
+    new Chart(document.getElementById('p1'), { type:'doughnut', data:{ labels:Object.keys(totals), datasets:[{data:Object.values(totals), backgroundColor:RED_COLORS, borderWidth:0}] }, options:{ responsive:true, maintainAspectRatio:false, cutout:'75%', plugins:{legend:{position:'bottom', labels:{color:'#8a87a0', font:{size:10}, usePointStyle:true}}} }});
+    new Chart(document.getElementById('p2'), { type:'bar', data:{ labels:w.accounts.map(a=>a.name), datasets:[{data:w.accounts.map(a=>a.total), backgroundColor:w.accounts.map(a=>ACC_COLORS[a.type]), borderRadius:6}] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} }});
 }
 
 function fmt(n) { return Math.round(n).toLocaleString('es-AR'); }
