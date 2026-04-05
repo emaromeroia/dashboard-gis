@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIS · NEON QUANTUM</title>
+    <title>GIS · MULTICUENTAS</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
@@ -183,7 +183,7 @@
     <div id="preloader"><div class="loader-ring"></div></div>
 
     <header>
-        <div class="brand">GIS <span>_QUANTUM</span></div>
+        <div class="brand">GIS <span>MULTICUENTA</span></div>
         <button style="background:none; border:1px solid var(--glass-border); color:var(--text-dim); padding:10px 20px; border-radius:8px; font-size:10px; cursor:pointer; font-weight:700; text-transform: uppercase; letter-spacing: 1px;" onclick="location.reload()">Sync Database</button>
     </header>
 
@@ -286,8 +286,8 @@
                 tabs.appendChild(b);
             };
 
-            createTab('all', 'Network Summary', true);
-            rawData.weeks.forEach(w => createTab(w.num, `Protocol S${w.num}`));
+            createTab('all', 'RESUMEN MENSUAL', true);
+            rawData.weeks.forEach(w => createTab(w.num, `SEMANA ${w.num}`));
             
             document.getElementById('preloader').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
