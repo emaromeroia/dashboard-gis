@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GIS · MULTICUENTAS</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -19,13 +19,13 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
 
 .bg-brand {
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: 45%; height: 45%; background: url('logo_oso.jpg') no-repeat center;
+    width: 45%; height: 45%; background: url('ChatGPT Image 5 abr 2026, 02_56_51 p.m..jpg') no-repeat center;
     background-size: contain; opacity: 0.05; filter: blur(2px); z-index: -1;
 }
 
 #loading-screen { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; position: fixed; width: 100%; top: 0; left: 0; background: var(--bg); z-index: 1000; }
 .topbar { padding: 1.2rem 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: rgba(5,5,8,0.95); backdrop-filter: blur(20px); z-index: 100; }
-.tab-bar { display: flex; gap: 5px; padding: 0.5rem 2rem; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+.tab-bar { display: flex; gap: 5px; padding: 0.5rem 2rem; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; }
 .tab { padding: 12px 20px; color: var(--muted); border: none; background: none; cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; transition: 0.3s; white-space: nowrap; }
 .tab.active { color: var(--lime); font-weight: 700; border-bottom: 2px solid var(--lime); }
 
@@ -48,17 +48,15 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
   background: linear-gradient(90deg, rgba(184,255,60,0.15), transparent);
   border: 1px solid rgba(184,255,60,0.3); border-radius: var(--radius);
   padding: 1.2rem 2rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 20px;
-  animation: reveal 0.8s ease-out;
 }
-@keyframes reveal { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
 </style>
 </head>
 <body>
 <div class="bg-brand"></div>
 <div id="loading-screen">
-    <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+    <div style="font-size: 3rem; margin-bottom: 1rem;">🏆</div>
     <h2 style="font-weight:800; letter-spacing: 1px;">SINCRO GIS</h2>
-    <p id="status" style="color:var(--muted); font-size:11px; margin-top:10px;">Validando métricas...</p>
+    <p id="status" style="color:var(--muted); font-size:11px; margin-top:10px;">Cargando base de datos...</p>
 </div>
 
 <div id="dash" style="display:none">
@@ -86,7 +84,7 @@ window.onload = async () => {
         document.getElementById('dash').style.display = 'block';
         render(data);
     } catch(e) {
-        document.getElementById('status').innerHTML = "Sube 'datos.xlsx' a GitHub.";
+        document.getElementById('status').innerHTML = "No se halló 'datos.xlsx'.";
     }
 };
 
@@ -104,15 +102,22 @@ function parse(wb) {
         let bono = null;
         for(let i = hRow + 1; i < rows.length; i++) {
             const fCol = String(rows[i][0] || '').trim();
-            // FILTRO DE SEGURIDAD: Solo procesar si tiene @ (es una cuenta real)
-            if(!fCol || /total|fecha|link|ganadora|2026/i.test(fCol)) continue;
             
-            if(/bono/i.test(fCol)) {
-                if(rows[i+1] && rows[i+1][1] && String(rows[i+1][1]).includes('@')) {
-                    bono = { cuenta: rows[i+1][1], monto: rows[i+1][2] };
+            // Detección de Bono (sección inferior del Excel)
+            if(/bono/i.test(fCol) || /ganadora/i.test(fCol)) {
+                // Buscamos en la fila actual o la siguiente la cuenta @
+                let possibleRow = rows[i].some(c => String(c).includes('@')) ? rows[i] : rows[i+1];
+                if(possibleRow) {
+                    const cuentaBono = possibleRow.find(c => String(c).includes('@'));
+                    if(cuentaBono) {
+                        bono = { cuenta: cuentaBono, monto: "$50" };
+                    }
                 }
-                i++; continue; 
+                continue; 
             }
+
+            if(!fCol || /total|fecha|link|2026/i.test(fCol)) continue;
+            
             if(fCol.includes('@')) {
                 const v = { TikTok:pn(rows[i][ci.tik]), Instagram:pn(rows[i][ci.ig]), Facebook:pn(rows[i][ci.fb]), YouTube:pn(rows[i][ci.yt]) };
                 const total = pn(rows[i][ci.tot]) || Object.values(v).reduce((a,b)=>a+b,0);
@@ -157,11 +162,11 @@ function showRes(res, weeks) {
     let h = `<div class="metrics-grid"><div class="card" style="border-top:4px solid var(--lime)"><div class="label">Total Mes</div><div class="val" style="color:var(--lime)">${fmt(grand)}</div></div>`;
     names.forEach(n => h += `<div class="card card-${res[n].type}"><div class="label">${n}</div><div class="val">${fmt(res[n].total)}</div></div>`);
     h += `</div><div style="display:grid; grid-template-columns: 1.6fr 1fr; gap:16px;">
-            <div class="panel"><div class="label">Crecimiento Semanal</div><div class="chart-container"><canvas id="c1"></canvas></div></div>
+            <div class="panel"><div class="label">Evolución Semanal</div><div class="chart-container"><canvas id="c1"></canvas></div></div>
             <div class="panel"><div class="label">Participación</div><div class="chart-container"><canvas id="c2"></canvas></div></div>
           </div>`;
     document.getElementById('main').innerHTML = h;
-    new Chart(document.getElementById('c1'), { type:'line', data:{ labels:weeks.map(w=>'Sem '+w.num), datasets: names.map(n=>({label:n, data:res[n].history, borderColor:ACC_COLORS[res[n].type], tension:0.4, pointRadius:4})) }, options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#8a87a0', font:{size:10}}}} }});
+    new Chart(document.getElementById('c1'), { type:'line', data:{ labels:weeks.map(w=>'S'+w.num), datasets: names.map(n=>({label:n, data:res[n].history, borderColor:ACC_COLORS[res[n].type], tension:0.4})) }, options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#8a87a0', font:{size:10}}}} }});
     new Chart(document.getElementById('c2'), { type:'doughnut', data:{ labels:names, datasets:[{data:names.map(n=>res[n].total), backgroundColor:names.map(n=>ACC_COLORS[res[n].type]), borderWidth:0}] }, options:{ responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{legend:{position:'bottom', labels:{color:'#8a87a0', font:{size:10}, usePointStyle:true}}} }});
 }
 
@@ -171,16 +176,18 @@ function showWeek(w) {
     w.accounts.forEach(a => { totals.TikTok+=a.TikTok; totals.Instagram+=a.Instagram; totals.Facebook+=a.Facebook; totals.YouTube+=a.YouTube; });
     const grand = Object.values(totals).reduce((a,b)=>a+b,0);
     let h = '';
-    if(w.bono) h += `<div class="bono-banner"><div><span style="font-size:24px">🏆</span></div><div><div class="label" style="color:var(--lime);margin:0">Bono Semanal</div><div style="font-size:18px;font-weight:800">${w.bono.cuenta} <span style="color:var(--lime)">(${w.bono.monto})</span></div></div></div>`;
+    // Mostrar bono solo si existe y es Semana 1 (o según el Excel)
+    if(w.bono) h += `<div class="bono-banner"><div><span style="font-size:24px">🏆</span></div><div><div class="label" style="color:var(--lime);margin:0">Bono Semanal Ganado</div><div style="font-size:18px;font-weight:800">${w.bono.cuenta} <span style="color:var(--lime)">(${w.bono.monto})</span></div></div></div>`;
+    
     h += `<div class="metrics-grid"><div class="card" style="border-top:4px solid var(--lime)"><div class="label">Semana ${w.num}</div><div class="val">${fmt(grand)}</div></div>`;
     w.accounts.forEach(a => h += `<div class="card card-${a.type}"><div class="label">${a.name}</div><div class="val">${fmt(a.total)}</div></div>`);
     h += `</div><div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:16px;">
             <div class="panel"><div class="label">Distribución Redes</div><div class="chart-container"><canvas id="p1"></canvas></div></div>
-            <div class="panel"><div class="label">Rendimiento Cuentas</div><div class="chart-container"><canvas id="p2"></canvas></div></div>
+            <div class="panel"><div class="label">Ranking Cuentas</div><div class="chart-container"><canvas id="p2"></canvas></div></div>
           </div>`;
     document.getElementById('main').innerHTML = h;
     new Chart(document.getElementById('p1'), { type:'doughnut', data:{ labels:Object.keys(totals), datasets:[{data:Object.values(totals), backgroundColor:RED_COLORS, borderWidth:0}] }, options:{ responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{legend:{position:'bottom', labels:{color:'#8a87a0', font:{size:10}, usePointStyle:true}}} }});
-    new Chart(document.getElementById('p2'), { type:'bar', data:{ labels:w.accounts.map(a=>a.name.split('.')[1]), datasets:[{data:w.accounts.map(a=>a.total), backgroundColor:w.accounts.map(a=>ACC_COLORS[a.type]), borderRadius:4}] }, options:{ responsive:true, maintainAspectRatio:false, scales:{x:{ticks:{color:'#8a87a0', font:{size:10}, minRotation:0, maxRotation:0}}, y:{grid:{color:'rgba(255,255,255,0.05)'}}}, plugins:{legend:{display:false}} }});
+    new Chart(document.getElementById('p2'), { type:'bar', data:{ labels:w.accounts.map(a=>a.name.split('.')[1]), datasets:[{data:w.accounts.map(a=>a.total), backgroundColor:w.accounts.map(a=>ACC_COLORS[a.type]), borderRadius:4}] }, options:{ responsive:true, maintainAspectRatio:false, scales:{x:{ticks:{color:'#8a87a0', font:{size:10}, minRotation:0, maxRotation:0}}}, plugins:{legend:{display:false}} }});
 }
 
 function fmt(n) { return Math.round(n).toLocaleString('es-AR'); }
