@@ -3,214 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIS · NEON MULTICUENTAS</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>GIS · MULTICUENTAS NEON</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
     <style>
         :root {
             --bg: #030305;
-            --surface: rgba(255, 255, 255, 0.03);
-            --surface-hover: rgba(255, 255, 255, 0.06);
+            --surface: rgba(255, 255, 255, 0.04);
             --border: rgba(255, 255, 255, 0.08);
             --text-main: #f0f0f5;
             --text-dim: #9494a5;
-            
-            /* Neon Palette */
-            --neon-pink: #ff4ecd;
-            --neon-blue: #3baaff;
-            --neon-green: #4dffb2;
-            --neon-yellow: #ffe66d;
-            --neon-purple: #9d50ff;
             --lime: #b8ff3c;
+            /* Account Colors */
+            --c-clips: #ff60c0; --c-realestate: #ffeb3b; --c-inversiones: #1877F2; --c-business: #4CAF50;
+            /* Social Colors */
+            --tiktok: #3cf0ff; --instagram: #ff60c0; --facebook: #1877f2; --youtube: #ff0000;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
         body { 
-            background: var(--bg); 
-            color: var(--text-main); 
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            overflow-x: hidden;
-            background-image: 
-                radial-gradient(circle at 10% 10%, rgba(157, 80, 255, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 90% 10%, rgba(59, 170, 255, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 50% 90%, rgba(77, 255, 178, 0.05) 0%, transparent 50%);
+            background: var(--bg); color: var(--text-main); font-family: 'Inter', sans-serif;
+            min-height: 100vh; overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% -20%, rgba(157, 80, 255, 0.1), transparent 50%);
         }
 
-        /* Grain Texture Overlay */
-        body::before {
-            content: "";
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3仿真%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-            opacity: 0.015; pointer-events: none; z-index: 9999;
-        }
-
-        .brand-logo {
+        .bg-logo {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 35vw; height: 35vw; background: url('logo_oso.jpg') center/contain no-repeat;
-            opacity: 0.03; filter: blur(10px) grayscale(1); z-index: -1;
+            width: 40vw; height: 40vw; background: url('logo_oso.jpg') center/contain no-repeat;
+            opacity: 0.04; filter: blur(6px); z-index: -1;
         }
 
-        /* Nav & Tabs */
         nav {
             height: 70px; border-bottom: 1px solid var(--border);
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 2.5rem; background: rgba(3, 3, 5, 0.7); backdrop-filter: blur(20px);
+            padding: 0 2.5rem; background: rgba(3, 3, 5, 0.8); backdrop-filter: blur(20px);
             position: sticky; top: 0; z-index: 100;
         }
 
-        .logo-text { font-weight: 800; font-size: 1rem; letter-spacing: 2px; color: var(--text-main); }
-        .logo-text span { color: var(--neon-purple); text-shadow: 0 0 15px var(--neon-purple); }
-
-        .tab-container {
-            display: flex; gap: 2rem; padding: 0 2.5rem; background: rgba(3, 3, 5, 0.4);
-            border-bottom: 1px solid var(--border); overflow-x: auto;
-        }
+        .tabs { display: flex; gap: 2rem; padding: 0 2.5rem; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
         .tab {
             padding: 1.2rem 0; font-family: 'JetBrains Mono'; font-size: 0.7rem;
             color: var(--text-dim); border: none; background: none; cursor: pointer;
             text-transform: uppercase; letter-spacing: 1px; transition: 0.3s;
-            position: relative;
+            border-bottom: 2px solid transparent;
         }
-        .tab.active { color: var(--text-main); }
-        .tab.active::after {
-            content: ""; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px;
-            background: var(--neon-purple); box-shadow: 0 0 10px var(--neon-purple);
-        }
+        .tab.active { color: var(--text-main); border-bottom-color: var(--lime); }
 
-        /* Grid System */
         main { max-width: 1400px; margin: 0 auto; padding: 2.5rem; }
-        
-        .kpi-row { display: grid; grid-template-columns: 1.5fr repeat(4, 1fr); gap: 1.2rem; margin-bottom: 2rem; }
-        
-        /* Glass Cards */
-        .card {
-            background: var(--surface);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.8rem;
-            transition: all 0.4s cubic-bezier(0.2, 1, 0.2, 1);
-            position: relative;
-            overflow: hidden;
+        .kpi-grid { display: grid; grid-template-columns: 1.5fr repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+
+        .card { 
+            background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+            padding: 1.5rem; transition: 0.3s; backdrop-filter: blur(10px);
         }
-        .card:hover {
-            background: var(--surface-hover);
-            transform: translateY(-4px) scale(1.01);
-            border-color: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        }
+        .card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.2); }
 
-        .primary-kpi {
-            background: linear-gradient(135deg, rgba(157, 80, 255, 0.05) 0%, rgba(0,0,0,0) 100%);
-            border-color: rgba(157, 80, 255, 0.2);
-        }
-        .primary-kpi .val {
-            font-size: 2.8rem; font-weight: 800; color: var(--text-main);
-            text-shadow: 0 0 20px rgba(255,255,255,0.2); letter-spacing: -2px;
-        }
+        .primary-card { border-top: 4px solid var(--lime); background: linear-gradient(180deg, rgba(184,255,60,0.05), transparent); }
+        .card-clips { border-top: 4px solid var(--c-clips); }
+        .card-realestate { border-top: 4px solid var(--c-realestate); }
+        .card-inversiones { border-top: 4px solid var(--c-inversiones); }
+        .card-business { border-top: 4px solid var(--c-business); }
 
-        .label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 600; letter-spacing: 1.5px; margin-bottom: 0.8rem; }
-        .val { font-size: 1.6rem; font-weight: 700; }
+        .val { font-size: 26px; font-weight: 800; letter-spacing: -1px; }
+        .card-clips .val { color: var(--c-clips); } .card-realestate .val { color: var(--c-realestate); }
+        .card-inversiones .val { color: var(--c-inversiones); } .card-business .val { color: var(--c-business); }
 
-        /* Neon Borders per Account */
-        .c-clips { border-bottom: 2px solid var(--neon-pink); }
-        .c-realestate { border-bottom: 2px solid var(--neon-yellow); }
-        .c-inversiones { border-bottom: 2px solid var(--neon-blue); }
-        .c-business { border-bottom: 2px solid var(--neon-green); }
+        .panel-grid { display: grid; grid-template-columns: 1.8fr 1fr; gap: 1.5rem; margin-top: 1.5rem; }
+        .chart-wrap { position: relative; height: 300px; width: 100%; }
 
-        .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
-        
-        .panel { padding: 2rem; min-height: 400px; }
-        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-        .panel-title { font-size: 0.8rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
-
-        .chart-container { position: relative; height: 320px; width: 100%; }
-
-        /* Trophy Banner */
-        .trophy-banner {
-            grid-column: span 2; margin-bottom: 1.5rem;
+        .bono-banner {
             background: linear-gradient(90deg, rgba(184, 255, 60, 0.1), transparent);
-            border: 1px solid rgba(184, 255, 60, 0.2);
-            border-radius: 16px; padding: 1.5rem 2.5rem;
-            display: flex; align-items: center; gap: 2rem;
-            animation: slideIn 1s ease-out;
+            border: 1px solid rgba(184, 255, 60, 0.3); border-radius: 16px;
+            padding: 1.5rem 2rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 20px;
         }
-        .trophy-glow { font-size: 2rem; filter: drop-shadow(0 0 10px var(--lime)); }
 
-        @keyframes slideIn { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
-
-        #loader { 
-            position: fixed; inset: 0; background: var(--bg); z-index: 1000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .pulse-loader {
-            width: 50px; height: 50px; border-radius: 50%;
-            background: var(--neon-purple);
-            box-shadow: 0 0 20px var(--neon-purple);
-            animation: pulse 1.5s infinite ease-in-out;
-        }
-        @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.8); opacity: 0.5; } }
-
-        @media (max-width: 1100px) {
-            .kpi-row, .dashboard-grid { grid-template-columns: 1fr; }
-        }
+        @media (max-width: 1000px) { .kpi-grid, .panel-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
-
-    <div class="brand-logo"></div>
-    <div id="loader"><div class="pulse-loader"></div></div>
+    <div class="bg-logo"></div>
+    <div id="loader" style="position:fixed;inset:0;background:#030305;z-index:1000;display:flex;align-items:center;justify-content:center;color:var(--lime);font-family:'JetBrains Mono';font-size:12px;">SINCRO_DATA...</div>
 
     <nav>
-        <div class="logo-text">GIS<span>_SINCRO</span></div>
-        <button style="background:none; border:1px solid var(--border); color:var(--text-dim); padding:8px 16px; border-radius:8px; font-size:10px; cursor:pointer;" onclick="location.reload()">REFRESH_DATA</button>
+        <div style="font-weight:800; letter-spacing:2px;">GIS <span style="color:var(--text-dim);font-weight:400;">/ MULTICUENTAS</span></div>
+        <button onclick="location.reload()" style="background:none;border:1px solid var(--border);color:var(--text-dim);padding:8px 16px;border-radius:8px;font-size:10px;cursor:pointer;">REFRESCAR</button>
     </nav>
-
-    <div class="tab-container" id="tabs"></div>
+    <div class="tabs" id="tabs"></div>
 
     <main id="content" style="display:none;">
-        <div id="bono-slot"></div>
-        <div class="kpi-row" id="kpi-grid"></div>
-        
-        <div class="dashboard-grid">
-            <div class="card panel">
-                <div class="panel-header"><h3 class="panel-title">Evolución de Alcance</h3></div>
-                <div class="chart-container"><canvas id="lineChart"></canvas></div>
-            </div>
-            <div class="card panel">
-                <div class="panel-header"><h3 class="panel-title">Participación de Mercado</h3></div>
-                <div class="chart-container"><canvas id="donutChart"></canvas></div>
-            </div>
+        <div id="bono-area"></div>
+        <div class="kpi-grid" id="kpi-grid"></div>
+        <div class="panel-grid">
+            <div class="card"><div style="font-size:10px;color:var(--text-dim);margin-bottom:20px;text-transform:uppercase;">Evolución de Alcance</div><div class="chart-wrap"><canvas id="mainChart"></canvas></div></div>
+            <div class="card"><div style="font-size:10px;color:var(--text-dim);margin-bottom:20px;text-transform:uppercase;">Participación</div><div class="chart-wrap"><canvas id="sideChart"></canvas></div></div>
         </div>
     </main>
 
     <script>
-        const COLORS = {
-            clips: '#ff4ecd',
-            realestate: '#ffe66d',
-            inversiones: '#3baaff',
-            business: '#4dffb2',
-            platforms: ['#3baaff', '#ff4ecd', '#1877f2', '#ff0000']
-        };
-
-        let dashboardData = { weeks: [], summary: {} };
+        const COLORS = { clips: '#ff60c0', realestate: '#ffeb3b', inversiones: '#1877F2', business: '#4CAF50', social: ['#3cf0ff','#ff60c0','#1877f2','#ff0000'] };
+        let db = { weeks: [], summary: {} };
         let charts = {};
 
         window.onload = async () => {
             try {
-                const res = await fetch('datos.xlsx?v=' + Date.now());
-                const buf = await res.arrayBuffer();
-                const wb = XLSX.read(buf, {type:'array', cellDates:true});
+                const r = await fetch('datos.xlsx?v=' + Date.now());
+                const ab = await r.arrayBuffer();
+                const wb = XLSX.read(ab, {type:'array', cellDates:true});
                 process(wb);
-                setupUI();
-            } catch(e) {
-                document.getElementById('loader').innerHTML = "<p style='color:red'>DATA_NOT_FOUND: Sube datos.xlsx</p>";
-            }
+                init();
+            } catch(e) { document.getElementById('loader').innerText = "ERROR: datos.xlsx no hallado"; }
         };
 
         function process(wb) {
@@ -221,138 +123,77 @@
                 const hIdx = rows.findIndex(r => r.some(c => String(c).toLowerCase().includes('tiktok')));
                 if(hIdx < 0) return;
 
-                const week = { num: m[1], accs: [], bono: null };
+                const week = { num: m[1], accounts: [], bono: null };
                 for(let i = hIdx + 1; i < rows.length; i++) {
                     const label = String(rows[i][0] || '').trim();
                     if(!label || /total|fecha|2026/i.test(label)) continue;
-                    if(/bono/i.test(label) && m[1] == "1") {
-                        week.bono = { user: "@giselarojas.inversiones", amt: "$50" };
+                    if(/bono/i.test(label)) {
+                        if(m[1] == "1") week.bono = { user: "@giselarojas.inversiones", amt: "$50" };
                         continue;
                     }
                     if(label.includes('@')) {
                         const type = label.split('.').pop();
-                        const total = parseFloat(rows[i][5]) || 0;
-                        week.accs.push({ name: label, type, total, tiktok: rows[i][1], ig: rows[i][2], fb: rows[i][3], yt: rows[i][4] });
-                        
-                        if(!dashboardData.summary[label]) dashboardData.summary[label] = { type, total: 0, history: [] };
-                        dashboardData.summary[label].total += total;
-                        dashboardData.summary[label].history.push(total);
+                        const metrics = [rows[i][1], rows[i][2], rows[i][3], rows[i][4]].map(v => parseFloat(v) || 0);
+                        const total = parseFloat(rows[i][5]) || metrics.reduce((a,b)=>a+b, 0);
+                        week.accounts.push({ name: label, type, total, tiktok: metrics[0], instagram: metrics[1], facebook: metrics[2], youtube: metrics[3] });
+                        if(!db.summary[label]) db.summary[label] = { type, total: 0, history: [] };
+                        db.summary[label].total += total;
+                        db.summary[label].history.push(total);
                     }
                 }
-                dashboardData.weeks.push(week);
+                db.weeks.push(week);
             });
-            dashboardData.weeks.sort((a,b) => a.num - b.num);
+            db.weeks.sort((a,b) => a.num - b.num);
         }
 
-        function setupUI() {
+        function init() {
             const tabs = document.getElementById('tabs');
-            const add = (id, text, active=false) => {
+            const makeTab = (id, lbl, act = false) => {
                 const b = document.createElement('button');
-                b.className = `tab ${active?'active':''}`;
-                b.innerText = text;
-                b.onclick = (e) => {
-                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                    e.target.classList.add('active');
-                    render(id);
-                };
+                b.className = `tab ${act ? 'active' : ''}`; b.innerText = lbl;
+                b.onclick = (e) => { document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); e.target.classList.add('active'); render(id); };
                 tabs.appendChild(b);
             };
-            add('all', 'Resumen Mensual', true);
-            dashboardData.weeks.forEach(w => add(w.num, `Semana ${w.num}`));
-            
+            makeTab('res', 'Resumen Mensual', true);
+            db.weeks.forEach(w => makeTab(w.num, `Semana ${w.num}`));
             document.getElementById('loader').style.display = 'none';
             document.getElementById('content').style.display = 'block';
-            render('all');
+            render('res');
         }
 
         function render(view) {
             const grid = document.getElementById('kpi-grid');
-            const bonoSlot = document.getElementById('bono-slot');
-            grid.innerHTML = ''; bonoSlot.innerHTML = '';
+            const bono = document.getElementById('bono-area');
+            grid.innerHTML = ''; bono.innerHTML = '';
             
-            if(view === 'all') {
-                const total = Object.values(dashboardData.summary).reduce((a,b)=>a+b.total, 0);
-                grid.innerHTML = `<div class="card primary-kpi"><div class="label">Total Alcance Mes</div><div class="val">${fmt(total)}</div></div>`;
-                Object.entries(dashboardData.summary).forEach(([name, d]) => {
-                    grid.innerHTML += `<div class="card c-${d.type}"><div class="label">${name}</div><div class="val">${fmt(d.total)}</div></div>`;
-                });
-                updateCharts('all');
+            if(view === 'res') {
+                const tot = Object.values(db.summary).reduce((a,b)=>a+b.total, 0);
+                grid.innerHTML = `<div class="card primary-card"><div style="font-size:10px;color:var(--text-dim);margin-bottom:8px;">TOTAL MES</div><div class="val" style="color:var(--lime)">${fmt(tot)}</div></div>`;
+                Object.entries(db.summary).forEach(([n, d]) => grid.innerHTML += `<div class="card card-${d.type}"><div style="font-size:10px;color:var(--text-dim);margin-bottom:8px;">${n}</div><div class="val">${fmt(d.total)}</div></div>`);
+                draw('res');
             } else {
-                const week = dashboardData.weeks.find(w => w.num == view);
-                const total = week.accs.reduce((a,b)=>a+b.total, 0);
-                grid.innerHTML = `<div class="card primary-kpi"><div class="label">Total Semana ${view}</div><div class="val">${fmt(total)}</div></div>`;
-                week.accs.forEach(a => {
-                    grid.innerHTML += `<div class="card c-${a.type}"><div class="label">${a.name}</div><div class="val">${fmt(a.total)}</div></div>`;
-                });
-                if(week.bono) {
-                    bonoSlot.innerHTML = `<div class="trophy-banner"><div class="trophy-glow">🏆</div><div><div class="label" style="margin:0;color:var(--lime)">Bono Semanal</div><div style="font-size:1.2rem;font-weight:800">${week.bono.user} ha ganado ${week.bono.amt}</div></div></div>`;
-                }
-                updateCharts(view);
+                const w = db.weeks.find(x => x.num == view);
+                const tot = w.accounts.reduce((a,b)=>a+b.total, 0);
+                grid.innerHTML = `<div class="card primary-card"><div style="font-size:10px;color:var(--text-dim);margin-bottom:8px;">SEMANA ${view}</div><div class="val">${fmt(tot)}</div></div>`;
+                w.accounts.forEach(a => grid.innerHTML += `<div class="card card-${a.type}"><div style="font-size:10px;color:var(--text-dim);margin-bottom:8px;">${a.name}</div><div class="val">${fmt(a.total)}</div></div>`);
+                if(w.bono) bono.innerHTML = `<div class="bono-banner"><span style="font-size:24px">🏆</span><div><div style="font-size:10px;color:var(--lime);font-weight:bold;margin-bottom:4px;">BONO SEMANAL</div><div style="font-size:18px;font-weight:800;">${w.bono.user} ha ganado ${w.bono.amt}</div></div></div>`;
+                draw(view);
             }
         }
 
-        function updateCharts(view) {
+        function draw(view) {
             Object.values(charts).forEach(c => c.destroy());
-            const lineCtx = document.getElementById('lineChart').getContext('2d');
-            const donutCtx = document.getElementById('donutChart').getContext('2d');
+            const opt = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#9494a5', font: { size: 10 } } } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#666', font: { size: 10 } } }, x: { grid: { display: false }, ticks: { color: '#666', font: { size: 10 }, maxRotation: 0 } } } };
 
-            const theme = {
-                responsive: true, maintainAspectRatio: false,
-                scales: { 
-                    y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#666', font: { size: 10 } } },
-                    x: { grid: { display: false }, ticks: { color: '#666', font: { size: 10 } } }
-                },
-                plugins: { 
-                    legend: { position: 'top', align: 'end', labels: { color: '#999', boxWidth: 10, usePointStyle: true, font: { size: 9 } } },
-                    tooltip: { backgroundColor: '#000', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 12 }
-                }
-            };
-
-            if(view === 'all') {
-                charts.line = new Chart(lineCtx, {
-                    type: 'line',
-                    data: {
-                        labels: dashboardData.weeks.map(w => `Sem ${w.num}`),
-                        datasets: Object.entries(dashboardData.summary).map(([name, d]) => ({
-                            label: name, data: d.history, borderColor: COLORS[d.type],
-                            tension: 0.4, borderWidth: 3, pointRadius: 0, 
-                            shadowBlur: 15, shadowColor: COLORS[d.type]
-                        }))
-                    },
-                    options: theme
-                });
-
-                charts.donut = new Chart(donutCtx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: Object.keys(dashboardData.summary),
-                        datasets: [{
-                            data: Object.values(dashboardData.summary).map(d => d.total),
-                            backgroundColor: Object.values(dashboardData.summary).map(d => COLORS[d.type]),
-                            borderWidth: 0, hoverOffset: 15
-                        }]
-                    },
-                    options: { ...theme, cutout: '75%', scales: undefined }
-                });
+            if(view === 'res') {
+                charts.m = new Chart(document.getElementById('mainChart'), { type: 'line', data: { labels: db.weeks.map(w=>`Sem ${w.num}`), datasets: Object.entries(db.summary).map(([n, d])=>({ label: n, data: d.history, borderColor: COLORS[d.type], tension: 0.4, pointRadius: 0 })) }, options: opt });
+                charts.s = new Chart(document.getElementById('sideChart'), { type: 'doughnut', data: { labels: Object.keys(db.summary), datasets: [{ data: Object.values(db.summary).map(d=>d.total), backgroundColor: Object.values(db.summary).map(d=>COLORS[d.type]), borderWidth: 0 }] }, options: { ...opt, cutout: '75%', scales: undefined } });
             } else {
-                const week = dashboardData.weeks.find(w => w.num == view);
-                charts.line = new Chart(lineCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: week.accs.map(a => a.name.split('.')[1]),
-                        datasets: [{ data: week.accs.map(a => a.total), backgroundColor: week.accs.map(a => COLORS[a.type]), borderRadius: 8 }]
-                    },
-                    options: { ...theme, plugins: { legend: { display: false } } }
-                });
-
-                const platforms = ['TikTok', 'Instagram', 'Facebook', 'YouTube'];
-                const platData = platforms.map(p => week.accs.reduce((sum, a) => sum + (a[p.toLowerCase()] || 0), 0));
-
-                charts.donut = new Chart(donutCtx, {
-                    type: 'doughnut',
-                    data: { labels: platforms, datasets: [{ data: platData, backgroundColor: COLORS.platforms, borderWidth: 0 }] },
-                    options: { ...theme, cutout: '75%', scales: undefined }
-                });
+                const w = db.weeks.find(x => x.num == view);
+                charts.m = new Chart(document.getElementById('mainChart'), { type: 'bar', data: { labels: w.accounts.map(a=>a.name.split('.')[1]), datasets: [{ data: w.accounts.map(a=>a.total), backgroundColor: w.accounts.map(a=>COLORS[a.type]), borderRadius: 6 }] }, options: { ...opt, plugins: { legend: { display: false } } } });
+                const plats = ['TikTok', 'Instagram', 'Facebook', 'YouTube'];
+                const pData = plats.map(p => w.accounts.reduce((s, a) => s + (a[p.toLowerCase()] || 0), 0));
+                charts.s = new Chart(document.getElementById('sideChart'), { type: 'doughnut', data: { labels: plats, datasets: [{ data: pData, backgroundColor: COLORS.social, borderWidth: 0 }] }, options: { ...opt, cutout: '75%', scales: undefined } });
             }
         }
 
