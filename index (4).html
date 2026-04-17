@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GIS · MULTICUENTAS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <style>
+        :root {
+            --bg: #030305;
+            --glass: rgba(255, 255, 255, 0.035);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f0f0f5;
+            --text-dim: #888899;
+            
+            /* Neon Palette */
+            --pink: #ff4ecd;
+            --blue: #3baaff;
+            --green: #4dffb2;
+            --yellow: #ffe66d;
+            --purple: #9d50ff;
+            --lime: #b8ff3c;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            background: var(--bg); 
+            color: var(--text-main); 
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Atmospheric Background Layering */
+        body::before {
+            content: "";
+            position: fixed; inset: 0;
+            background: 
+                radial-gradient(circle at 15% 15%, rgba(157, 80, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 15%, rgba(59, 170, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 50% 85%, rgba(77, 255, 178, 0.05) 0%, transparent 50%),
+                linear-gradient(180deg, #030305 0%, #080812 100%);
+            z-index: -2;
+        }
+
+        /* Logo Watermark */
+        .watermark {
+            position: fixed;
+            bottom: -5%;
+            right: -5%;
+            width: 50vw;
+            height: 50vw;
+            background: url('logo_oso.jpg') center/contain no-repeat;
+            opacity: 0.04;
+            filter: blur(12px) grayscale(1);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Header & Tabs */
+        header {
+            padding: 1.5rem 2.5rem;
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(3, 3, 5, 0.4);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        .brand { font-weight: 800; font-size: 0.9rem; letter-spacing: 4px; text-transform: uppercase; color: var(--text-main); }
+        .brand span { color: var(--purple); text-shadow: 0 0 12px var(--purple); }
+
+        .tabs-container {
+            display: flex; gap: 2.5rem; padding: 0 2.5rem;
+            background: rgba(3, 3, 5, 0.2);
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .tab {
+            padding: 1.25rem 0; font-family: 'JetBrains Mono'; font-size: 0.7rem;
+            color: var(--text-dim); border: none; background: none; cursor: pointer;
+            text-transform: uppercase; letter-spacing: 1.5px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .tab:hover { color: var(--text-main); }
+        .tab.active { color: var(--text-main); text-shadow: 0 0 10px rgba(255,255,255,0.4); }
+        .tab.active::after {
+            content: ""; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px;
+            background: var(--purple); box-shadow: 0 0 15px var(--purple);
+        }
+
+        /* Main Grid Layout */
+        main { max-width: 1500px; width: 100%; margin: 0 auto; padding: 3rem 2.5rem; }
+
+        /* KPI Section */
+        .kpi-row { display: grid; grid-template-columns: 1.5fr repeat(4, 1fr); gap: 1.5rem; margin-bottom: 3rem; }
+
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.75rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 12px 40px -10px rgba(0,0,0,0.5);
+        }
+
+        .primary-card {
+            background: linear-gradient(145deg, rgba(157, 80, 255, 0.08) 0%, rgba(3,3,5,0) 100%);
+            border-color: rgba(157, 80, 255, 0.25);
+        }
+        .primary-card .val {
+            font-size: 2.75rem; color: #fff; text-shadow: 0 0 25px rgba(255,255,255,0.25);
+            letter-spacing: -2px; margin-top: 0.5rem;
+        }
+
+        .label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; letter-spacing: 2px; margin-bottom: 0.75rem; }
+        .val { font-size: 1.6rem; font-weight: 800; }
+        .growth { font-size: 0.7rem; font-weight: 600; color: var(--green); margin-left: 8px; vertical-align: middle; }
+
+        /* Neon Borders for Secondary KPIs */
+        .card-clips { border-bottom: 2px solid var(--pink); } .card-clips .val { color: var(--pink); }
+        .card-realestate { border-bottom: 2px solid var(--yellow); } .card-realestate .val { color: var(--yellow); }
+        .card-inversiones { border-bottom: 2px solid var(--blue); } .card-inversiones .val { color: var(--blue); }
+        .card-business { border-bottom: 2px solid var(--green); } .card-business .val { color: var(--green); }
+
+        /* Content Sections */
+        .dashboard-grid { display: grid; grid-template-columns: 8fr 4fr; gap: 2rem; }
+        .panel { padding: 2.25rem; }
+        
+        .panel-header { margin-bottom: 2.5rem; }
+        .panel-title { font-size: 0.75rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; }
+        .insight-text { font-size: 0.85rem; color: var(--purple); font-weight: 500; margin-top: 0.5rem; text-shadow: 0 0 10px rgba(157, 80, 255, 0.3); }
+
+        .chart-container { position: relative; height: 360px; width: 100%; }
+
+        /* Bono Special */
+        .bono-award {
+            grid-column: span 2; margin-bottom: 2rem;
+            background: linear-gradient(90deg, rgba(184, 255, 60, 0.08), transparent);
+            border: 1px solid rgba(184, 255, 60, 0.2);
+            border-radius: 16px; padding: 1.5rem 2.5rem;
+            display: flex; align-items: center; gap: 2rem;
+            animation: fadeIn 0.8s ease-out;
+        }
+        .trophy { font-size: 2.5rem; filter: drop-shadow(0 0 12px var(--lime)); }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        #preloader { 
+            position: fixed; inset: 0; background: var(--bg); z-index: 1000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .loader-ring {
+            width: 45px; height: 45px; border-radius: 50%;
+            border: 2px solid var(--purple);
+            box-shadow: 0 0 20px var(--purple);
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse { 0%, 100% { transform: scale(0.8); opacity: 0.4; } 50% { transform: scale(1.1); opacity: 1; } }
+
+        @media (max-width: 1200px) {
+            .kpi-row, .dashboard-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="watermark"></div>
+    <div id="preloader"><div class="loader-ring"></div></div>
+
+    <header>
+        <div class="brand">GIS <span>MULTICUENTA</span></div>
+        <button style="background:none; border:1px solid var(--glass-border); color:var(--text-dim); padding:10px 20px; border-radius:8px; font-size:10px; cursor:pointer; font-weight:700; text-transform: uppercase; letter-spacing: 1px;" onclick="location.reload()">Sync Database</button>
+    </header>
+
+    <div class="tabs-container" id="tabs"></div>
+
+    <main id="dashboard" style="display:none;">
+        <div id="bono-area"></div>
+        
+        <div class="kpi-row" id="kpis"></div>
+        
+        <div class="dashboard-grid">
+            <div class="card panel">
+                <div class="panel-header">
+                    <h3 class="panel-title">Growth Velocity</h3>
+                    <div class="insight-text" id="growth-insight"></div>
+                </div>
+                <div class="chart-container"><canvas id="growthChart"></canvas></div>
+            </div>
+            <div class="card panel">
+                <div class="panel-header">
+                    <h3 class="panel-title">Asset Distribution</h3>
+                </div>
+                <div class="chart-container"><canvas id="distChart"></canvas></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const COLORS = {
+            clips: '#ff4ecd',
+            realestate: '#ffe66d',
+            inversiones: '#3baaff',
+            business: '#4dffb2',
+            social: ['#3baaff', '#ff4ecd', '#1877f2', '#ff0000']
+        };
+
+        let rawData = { weeks: [], summary: {} };
+        let currentCharts = {};
+
+        window.onload = () => {
+            loadHardcodedData();
+            initInterface();
+        };
+
+        function loadHardcodedData() {
+            const weeksData = [
+                {
+                    num: '1',
+                    label: 'Semana 1 (27/03 – 02/04)',
+                    bono: { user: '@giselarojas.inversiones', prize: '$50' },
+                    accounts: [
+                        { name: '@giselarojas.clips',       type: 'clips',       tiktok: 94000,   ig: 78626,   fb: 495462,  yt: 1700,  total: 669788   },
+                        { name: '@giselarojas.realestate',  type: 'realestate',  tiktok: 45000,   ig: 112720,  fb: 14000,   yt: 9398,  total: 181118   },
+                        { name: '@giselarojas.inversiones', type: 'inversiones', tiktok: 2876,    ig: 77700,   fb: 308700,  yt: 12200, total: 401476   },
+                        { name: '@giselarojas.business',    type: 'business',    tiktok: 5444,    ig: 6654,    fb: 4640,    yt: 4800,  total: 21538    }
+                    ]
+                },
+                {
+                    num: '2',
+                    label: 'Semana 2 (03/04 – 09/04)',
+                    bono: null,
+                    accounts: [
+                        { name: '@giselarojas.clips',       type: 'clips',       tiktok: 107000,  ig: 42478,   fb: 596829,  yt: 1.6,   total: 746308.6 },
+                        { name: '@giselarojas.realestate',  type: 'realestate',  tiktok: 67000,   ig: 43251,   fb: 11822,   yt: 7615,  total: 129688   },
+                        { name: '@giselarojas.inversiones', type: 'inversiones', tiktok: 9197,    ig: 53300,   fb: 123000,  yt: 4300,  total: 189797   },
+                        { name: '@giselarojas.business',    type: 'business',    tiktok: 5456,    ig: 2771,    fb: 6214,    yt: 3500,  total: 17941    }
+                    ]
+                },
+                {
+                    num: '3',
+                    label: 'Semana 3 (10/04 – 16/04)',
+                    bono: { user: '@giselarojas.realestate', prize: '$50' },
+                    accounts: [
+                        { name: '@giselarojas.clips',       type: 'clips',       tiktok: 484000,  ig: 34275,   fb: 286678,  yt: 2551,  total: 807504   },
+                        { name: '@giselarojas.realestate',  type: 'realestate',  tiktok: 80000,   ig: 48985,   fb: 273000,  yt: 12893, total: 414878   },
+                        { name: '@giselarojas.inversiones', type: 'inversiones', tiktok: 3579,    ig: 41500,   fb: 484600,  yt: 3000,  total: 532679   },
+                        { name: '@giselarojas.business',    type: 'business',    tiktok: 12000,   ig: 5592,    fb: 6893,    yt: 5800,  total: 30285    }
+                    ]
+                },
+                {
+                    num: '4',
+                    label: 'Semana 4 (17/04 – 23/04)',
+                    bono: null,
+                    accounts: [
+                        { name: '@giselarojas.clips',       type: 'clips',       tiktok: 0, ig: 0, fb: 0, yt: 0, total: 0 },
+                        { name: '@giselarojas.realestate',  type: 'realestate',  tiktok: 0, ig: 0, fb: 0, yt: 0, total: 0 },
+                        { name: '@giselarojas.inversiones', type: 'inversiones', tiktok: 0, ig: 0, fb: 0, yt: 0, total: 0 },
+                        { name: '@giselarojas.business',    type: 'business',    tiktok: 0, ig: 0, fb: 0, yt: 0, total: 0 }
+                    ]
+                }
+            ];
+
+            weeksData.forEach(week => {
+                rawData.weeks.push({ num: week.num, accounts: week.accounts, bono: week.bono });
+                week.accounts.forEach(acc => {
+                    if (!rawData.summary[acc.name]) rawData.summary[acc.name] = { type: acc.type, total: 0, history: [] };
+                    rawData.summary[acc.name].total += acc.total;
+                    rawData.summary[acc.name].history.push(acc.total);
+                });
+            });
+        }
+
+        function initInterface() {
+            const tabs = document.getElementById('tabs');
+            const createTab = (id, label, isFirst = false) => {
+                const b = document.createElement('button');
+                b.className = `tab ${isFirst ? 'active' : ''}`;
+                b.innerText = label;
+                b.onclick = (e) => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    e.target.classList.add('active');
+                    updateDashboard(id);
+                };
+                tabs.appendChild(b);
+            };
+
+            createTab('all', 'RESUMEN MENSUAL', true);
+            rawData.weeks.forEach(w => createTab(w.num, `SEMANA ${w.num}`));
+            
+            document.getElementById('preloader').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            updateDashboard('all');
+        }
+
+        function updateDashboard(viewId) {
+            const kpiContainer = document.getElementById('kpis');
+            const bonoContainer = document.getElementById('bono-area');
+            kpiContainer.innerHTML = ''; bonoContainer.innerHTML = '';
+            
+            if(viewId === 'all') {
+                const total = Object.values(rawData.summary).reduce((a,b)=>a+b.total, 0);
+                kpiContainer.innerHTML = `<div class="card primary-card"><div class="label">Aggregate Reach</div><div class="val">${fmt(total)}<span class="growth">+12.4%</span></div></div>`;
+                Object.entries(rawData.summary).forEach(([name, data]) => {
+                    kpiContainer.innerHTML += `<div class="card card-${data.type}"><div class="label">${name}</div><div class="val">${fmt(data.total)}</div></div>`;
+                });
+                renderCharts('all');
+            } else {
+                const week = rawData.weeks.find(x => x.num == viewId);
+                const total = week.accounts.reduce((a,b)=>a+b.total, 0);
+                kpiContainer.innerHTML = `<div class="card primary-card"><div class="label">Cycle ${viewId} Throughput</div><div class="val">${fmt(total)}</div></div>`;
+                week.accounts.forEach(acc => {
+                    kpiContainer.innerHTML += `<div class="card card-${acc.type}"><div class="label">${acc.name}</div><div class="val">${fmt(acc.total)}</div></div>`;
+                });
+                if(week.bono) {
+                    bonoContainer.innerHTML = `<div class="bono-award"><div class="trophy">🏆</div><div><div class="label" style="margin:0;color:var(--lime)">Weekly Protocol Reward</div><div style="font-size:1.15rem;font-weight:800;letter-spacing:1px;">${week.bono.user} assigned ${week.bono.prize}</div></div></div>`;
+                }
+                renderCharts(viewId);
+            }
+        }
+
+        function renderCharts(viewId) {
+            Object.values(currentCharts).forEach(c => c.destroy());
+            const growthCtx = document.getElementById('growthChart').getContext('2d');
+            const distCtx = document.getElementById('distChart').getContext('2d');
+
+            const sharedOptions = {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { 
+                    legend: { position: 'top', align: 'end', labels: { color: '#888', boxWidth: 8, usePointStyle: true, font: { size: 10, weight: 600 } } },
+                    tooltip: { backgroundColor: 'rgba(3,3,5,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 12, backdropFilter: 'blur(10px)' }
+                },
+                scales: { 
+                    y: { grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: '#555', font: { size: 10, family: 'JetBrains Mono' } } },
+                    x: { grid: { display: false }, ticks: { color: '#555', font: { size: 10, family: 'JetBrains Mono' } } }
+                }
+            };
+
+            if(viewId === 'all') {
+                const topAccount = Object.entries(rawData.summary).sort((a,b) => b[1].total - a[1].total)[0];
+                const total = Object.values(rawData.summary).reduce((a,b)=>a+b.total,0);
+                document.getElementById('growth-insight').innerText = `${topAccount[0]} contributes ${(topAccount[1].total/total*100).toFixed(1)}% of total monthly reach`;
+
+                currentCharts.growth = new Chart(growthCtx, {
+                    type: 'line',
+                    data: {
+                        labels: rawData.weeks.map(w => `S${w.num}`),
+                        datasets: Object.entries(rawData.summary).map(([name, data]) => ({
+                            label: name, data: data.history, borderColor: COLORS[data.type],
+                            tension: 0.4, borderWidth: 3.5, pointRadius: 0, hoverBorderWidth: 5,
+                            shadowBlur: 15, shadowColor: COLORS[data.type]
+                        }))
+                    },
+                    options: sharedOptions
+                });
+
+                const sortedData = Object.entries(rawData.summary).sort((a,b) => b[1].total - a[1].total);
+                currentCharts.dist = new Chart(distCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: sortedData.map(d => d[0]),
+                        datasets: [{
+                            data: sortedData.map(d => d[1].total),
+                            backgroundColor: sortedData.map(d => COLORS[d[1].type]),
+                            borderWidth: 0, hoverOffset: 12,
+                        }]
+                    },
+                    options: { 
+                        ...sharedOptions, cutout: '82%', scales: undefined,
+                        plugins: { ...sharedOptions.plugins, legend: { position: 'bottom', labels: { color: '#888', padding: 20 } } }
+                    }
+                });
+            } else {
+                const week = rawData.weeks.find(x => x.num == viewId);
+                currentCharts.growth = new Chart(growthCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: week.accounts.map(a => a.name.split('.')[1]),
+                        datasets: [{ data: week.accounts.map(a => a.total), backgroundColor: week.accounts.map(a => COLORS[a.type]), borderRadius: 8 }]
+                    },
+                    options: { ...sharedOptions, plugins: { legend: { display: false } } }
+                });
+
+                const pData = [0,0,0,0];
+                week.accounts.forEach(a => { [a.tiktok, a.ig, a.fb, a.yt].forEach((v, i) => pData[i] += (v||0)); });
+                currentCharts.dist = new Chart(distCtx, {
+                    type: 'doughnut',
+                    data: { labels: ['TikTok', 'Instagram', 'Facebook', 'YouTube'], datasets: [{ data: pData, backgroundColor: COLORS.social, borderWidth: 0 }] },
+                    options: { ...sharedOptions, cutout: '82%', scales: undefined }
+                });
+            }
+        }
+
+        function fmt(n) { return Math.round(n).toLocaleString('es-AR'); }
+    </script>
+</body>
+</html>
